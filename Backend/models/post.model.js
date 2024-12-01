@@ -1,10 +1,10 @@
 const db = require('../config/db.config');
 
 // Funkcja do dodawania nowego posta
-const createPost = (title, content, thumbnail = null, tags = null) => {
+const createPost = (title, content, tags = null) => {
   return new Promise((resolve, reject) => {
     db.query(
-      'INSERT INTO posts (title, content, thumbnail, tags) VALUES (?, ?, ?, ?)',
+      'INSERT INTO posts (title, content, tags) VALUES (?, ?, ?)',
       [title, content, thumbnail, tags],
       (err, results) => {
         if (err) {

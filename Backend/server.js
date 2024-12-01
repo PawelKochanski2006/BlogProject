@@ -1,32 +1,28 @@
 const express = require('express');
-const dotenv = require('dotenv');
-const bodyParser = require('body-parser');
 const cors = require('cors');
-const { connectDB, sequelize } = require('./config/db');
+const bodyParser = require('body-parser');
+const authRoutes = require('./routes/auth.routes');
+const postRoutes = require('./routes/post.routes');
+const commentRoutes = require('./routes/comment.routes');
+const galleryRoutes = require('./routes/gallery.routes');
 
 // Wczytaj zmienne środowiskowe
-dotenv.config();
+require('dotenv').config();
 
-// Połącz z bazą danych
-connectDB();
-
-// Synchronizuj modele z bazą
-sequelize.sync({ force: false }).then(() => {
-    console.log('Modele zsynchronizowane z bazą danych.');
-});
-
-// Stwórz aplikację Express
 const app = express();
+const PORT = process.env.PORT || 3000;
 
 // Middleware
 app.use(cors());
 app.use(bodyParser.json());
 
-// Trasy API
-app.use('/api/posts', require('./routes/postRoutes'));
-app.use('/api/comments', require('./routes/commentRoutes'));
-app.use('/api/gallery', require('./routes/galleryRoutes'));
+// Trasy
+app.use('/api/auth', authRoutes);
+app.use('/api/posts', postRoutes);
+app.use('/api/comments', commentRoutes);
+app.use('/api/gallery', galleryRoutes);
 
-// Uruchom serwer
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Serwer działa na porcie ${PORT}`));
+// Uruchomienie serwera
+app.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`);
+});

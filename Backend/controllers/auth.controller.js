@@ -2,7 +2,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { createUser , findUserByUsername } = require('../models/user.model');
 
-const JWT_SECRET = process.env.JWT_SECRET; // Użyj silnego sekretu w produkcji
+const JWT_SECRET = process.env.JWT_SECRET; 
 
 // Rejestracja użytkownika
 const register = async (req, res) => {
