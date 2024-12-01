@@ -2,8 +2,7 @@ const express = require('express');
 const dotenv = require('dotenv');
 const bodyParser = require('body-parser');
 const cors = require('cors');
-const { connectDB } = require('./config/db');
-const { sequelize } = require('./config/db');
+const { connectDB, sequelize } = require('./config/db');
 
 // Wczytaj zmienne środowiskowe
 dotenv.config();
