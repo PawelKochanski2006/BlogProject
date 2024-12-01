@@ -1,16 +1,8 @@
 const { DataTypes } = require('sequelize');
 const { sequelize } = require('../config/db');
 
-const Comment = sequelize.define('Comment', {
-    postId: {
-        type: DataTypes.INTEGER,
-        allowNull: false,
-    },
-    name: {
-        type: DataTypes.STRING,
-        allowNull: false,
-    },
-    email: {
+const Posts = sequelize.define('Posts', {
+    title: {
         type: DataTypes.STRING,
         allowNull: false,
     },
@@ -18,10 +10,16 @@ const Comment = sequelize.define('Comment', {
         type: DataTypes.TEXT,
         allowNull: false,
     },
-    date: {
+    createdAt: {
         type: DataTypes.DATE,
         defaultValue: DataTypes.NOW,
     },
+    thumbnail: {
+        type: DataTypes.STRING,
+    },
+    tags: {
+        type: DataTypes.STRING,
+    },
 });
 
-module.exports = Comment;
+module.exports = Posts;

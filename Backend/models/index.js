@@ -1,9 +1,9 @@
-const Post = require('./Post');
-const Comment = require('./Comment');
+const Posts = require('./Posts');
+const Comments = require('./Comments');
 const Gallery = require('./Gallery');
 
-// Relacje (jeśli istnieją):
-Post.hasMany(Comment, { foreignKey: 'postId' });
-Comment.belongsTo(Post, { foreignKey: 'postId' });
+// Relacje między tabelami:
+Posts.hasMany(Comment, { foreignKey: 'postId' });
+Comment.belongsTo(Posts, { foreignKey: 'postId' });
 
-module.exports = { Post, Comment, Gallery };
+module.exports = { Posts, Comments, Gallery };
