@@ -32,3 +32,5 @@ const PostList = () => {
     </div>
   );
 };
+
+export default PostList;
