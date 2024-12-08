@@ -5,6 +5,7 @@ const authRoutes = require('./routes/auth.routes');
 const postRoutes = require('./routes/post.routes');
 const commentRoutes = require('./routes/comment.routes');
 const galleryRoutes = require('./routes/gallery.routes');
+const likeRoutes = require('./routes/like.routes');
 
 // Wczytaj zmienne środowiskowe
 require('dotenv').config();
@@ -21,6 +22,16 @@ app.use('/api/auth', authRoutes);
 app.use('/api/posts', postRoutes);
 app.use('/api/comments', commentRoutes);
 app.use('/api/gallery', galleryRoutes);
+
+// Obsługa błędów
+app.use((req, res) => {
+  res.status(404).send({ message: 'Not found' });
+});
+
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).send({ message: 'Something broke!' });
+});
 
 // Uruchomienie serwera
 app.listen(PORT, () => {

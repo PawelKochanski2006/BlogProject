@@ -12,7 +12,7 @@ const Header = () => {
 
   return (
     <header className="bg-gray-800 text-white shadow-md">
-      <div className="container mx-auto flex items-center justify-between py-4 px-4">
+      <div className="container mx-auto flex items-center justify-between py-4 px-6 md:pb-0.128 md:pt-6">
         {/* Logo */}
         <div className="text-2xl font-bold">
           <Link to="/">TERRA LIVING</Link>
