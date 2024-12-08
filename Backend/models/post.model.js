@@ -1,30 +1,33 @@
 const db = require('../config/db.config');
 
 // Function to display all posts with thumbnail, category, comments count, likes, and views
-const findAllPosts = (category = null) => {
+const findAllPosts = () => {
   return new Promise((resolve, reject) => {
     db.query(`SELECT
-                p.id AS post_id,
-                p.title,
-                p.description,
-                p.image_url AS thumbnail,
-                p.read_time,
-                p.views,
-                p.likes_count,
-                COUNT(c.id) AS comments_count,
-                cat.name AS category
+                  p.id AS post_id,
+                  p.title,
+                  p.description,
+                  p.image_url AS thumbnail,
+                  p.read_time,
+                  p.views,
+                  p.likes_count,
+                  COUNT(c.id) AS comments_count,
+                  cat.name AS category,
+                  u.username AS author,
+                  p.created_at
               FROM
-                posts p
+                  posts p
               LEFT JOIN
-                comments c ON p.id = c.post_id
+                  comments c ON p.id = c.post_id
               LEFT JOIN
-                categories cat ON p.category_id = cat.id
-              WHERE
-                (cat.name = ? OR ? IS NULL)
+                  categories cat ON p.category_id = cat.id
+              JOIN
+                users u ON p.created_by = u.id
               GROUP BY
-                p.id, p.title, p.description, p.image_url, p.read_time, p.views, p.likes_count, cat.name
+                  p.id, p.title, p.description, p.image_url, p.read_time, p.views, p.likes_count, cat.name
               ORDER BY
-                p.created_at DESC;`, [category, category], (err, results) => {
+                  p.created_at DESC;
+    `, (err, results) => {
       if (err) return reject(err);
       resolve(results);
     });
@@ -43,6 +46,7 @@ const findPostDetails = (postId) => {
                 p.likes_count,
                 p.image_url AS main_image,
                 cat.name AS category,
+                u.username AS author,
                 GROUP_CONCAT(t.name) AS tags,
                 GROUP_CONCAT(pi.image_url SEPARATOR ', ') AS additional_images
               FROM
@@ -55,10 +59,13 @@ const findPostDetails = (postId) => {
                 tags t ON pt.tag_id = t.id
               LEFT JOIN
                 post_images pi ON p.id = pi.post_id
+              JOIN
+                users u ON p.created_by = u.id
               WHERE
                 p.id = ?
               GROUP BY
-                p.id, p.title, p.description, p.read_time, p.views, p.likes_count, p.image_url, cat.name;`, [postId], (err, results) => {
+                p.id, p.title, p.description, p.read_time, p.views, p.likes_count, p.image_url, cat.name;
+    `, [postId], (err, results) => {
       if (err) return reject(err);
       resolve(results[0]);
     });
