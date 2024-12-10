@@ -1,6 +1,13 @@
 const db = require('../config/db.config');
 
-// Function to display all posts with thumbnail, category, comments count, likes, and views
+/**
+ * Funkcja `findAllPosts` pobiera szczegółowe informacje o postach, w tym ID posta, tytuł,
+ * opis, autora, kategorię i więcej z bazy danych.
+ * @returns Funkcja `findAllPosts` zwraca Promise, który wykonuje zapytanie do bazy danych w celu pobrania listy
+ * postów z różnymi szczegółami, takimi jak ID posta, tytuł, opis, URL miniatury, czas czytania,
+ * wyświetlenia, liczba polubień, liczba komentarzy, kategoria, autor i data utworzenia. Posty są grupowane według
+ * określonych pól i sortowane według daty utworzenia w kolejności malejącej. Jeśli zapytanie zakończy się sukcesem, funkcja zwraca
+ */
 const findAllPosts = () => {
   return new Promise((resolve, reject) => {
     db.query(`SELECT
@@ -34,7 +41,20 @@ const findAllPosts = () => {
   });
 };
 
-// Function to display post details
+// Funkcja do wyświetlania szczegółów posta
+/**
+ * Funkcja `findPostDetails` pobiera szczegółowe informacje o konkretnym poście z bazy danych
+ * na podstawie podanego ID posta.
+ * @param postId - Funkcja `findPostDetails` jest zaprojektowana do pobierania szczegółów konkretnego posta
+ * z bazy danych na podstawie podanego `postId`. Zapytanie SQL pobiera różne informacje związane z
+ * postem, takie jak ID posta, tytuł, opis, czas czytania, wyświetlenia, liczba polubień, URL głównego obrazu,
+ * kategoria,
+ * @returns Funkcja `findPostDetails` zwraca Promise, który wykonuje zapytanie do bazy danych w celu pobrania
+ * szczegółów konkretnego posta na podstawie podanego `postId`. Funkcja pobiera informacje takie jak
+ * ID posta, tytuł, opis, czas czytania, wyświetlenia, liczba polubień, URL głównego obrazu, kategoria, nazwa autora,
+ * tagi związane z postem i dodatkowe obrazy związane z postem. Zapytanie łączy
+ * wiele tabel (posts
+ */
 const findPostDetails = (postId) => {
   return new Promise((resolve, reject) => {
     db.query(`SELECT
@@ -72,6 +92,15 @@ const findPostDetails = (postId) => {
   });
 };
 
+/**
+ * Funkcja `addLikeToPost` dodaje polubienie do posta w bazie danych i aktualizuje liczbę polubień dla
+ * tego posta.
+ * @param postId - Parametr `postId` reprezentuje unikalny identyfikator posta, do którego dodawane jest polubienie.
+ * @param userId - Parametr `userId` w funkcji `addLikeToPost` reprezentuje unikalny
+ * identyfikator użytkownika, który polubił post. Ten parametr jest używany do powiązania użytkownika z
+ * akcją polubienia posta w bazie danych.
+ * @returns Funkcja `addLikeToPost` zwraca Promise.
+ */
 const addLikeToPost = (postId, userId) => {
   return new Promise((resolve, reject) => {
     db.query('INSERT INTO post_likes (post_id, user_id) VALUES (?, ?)', [postId, userId], (err, results) => {
@@ -84,6 +113,36 @@ const addLikeToPost = (postId, userId) => {
   });
 };
 
+// TODO: Translate the following comment to Polish
+/**
+ * The function `removeLikeFromPost` removes a like from a post in a database and updates the likes
+ * count for that post.
+ * @param postId - The `postId` parameter represents the unique identifier of the post from which you
+ * want to remove a like. It is used to identify the specific post in the database.
+ * @param userId - The `userId` parameter in the `removeLikeFromPost` function represents the ID of the
+ * user who wants to remove their like from a post. This function is designed to remove a like from a
+ * post in a database by deleting the corresponding entry in the `post_likes` table and updating the `
+ * @returns The `removeLikeFromPost` function returns a Promise.
+ */
+const removeLikeFromPost = (postId, userId) => {
+  return new Promise((resolve, reject) => {
+    db.query('DELETE FROM post_likes WHERE post_id = ? AND user_id = ?', [postId, userId], (err, results) => {
+      if (err) return reject(err);
+      db.query('UPDATE posts SET likes_count = (SELECT COUNT(*) FROM post_likes WHERE post_id = ?) WHERE id = ?', [postId, postId], (err, results) => {
+        if (err) return reject(err);
+        resolve(results);
+      });
+    });
+  });
+};
+
+/**
+ * Funkcja `incrementPostViews` aktualizuje liczbę wyświetleń posta w bazie danych, zwiększając ją
+ * o 1.
+ * @param postId - Parametr `postId` jest unikalnym identyfikatorem posta, dla którego chcesz
+ * zwiększyć liczbę wyświetleń w bazie danych.
+ * @returns Funkcja `incrementPostViews` zwraca Promise.
+ */
 const incrementPostViews = (postId) => {
   return new Promise((resolve, reject) => {
     db.query('UPDATE posts SET views = views + 1 WHERE id = ?', [postId], (err, results) => {
@@ -93,7 +152,27 @@ const incrementPostViews = (postId) => {
   });
 };
 
-// Function to update post details
+/**
+ * Funkcja `editPost` aktualizuje tytuł, opis, główny obraz i dodatkowe obrazy posta w
+ * tabeli bazy danych.
+ * @param postId - Parametr `postId` w funkcji `editPost` reprezentuje unikalny identyfikator
+ * posta, który chcesz edytować. Jest używany do identyfikacji konkretnego posta w bazie danych, który chcesz
+ * zaktualizować nowymi informacjami podanymi w `title`, `description`, `imageUrl` i
+ * `additional
+ * @param title - Parametr `title` w funkcji `editPost` odnosi się do nowego tytułu, który chcesz
+ * zaktualizować dla konkretnego posta zidentyfikowanego przez `postId`.
+ * @param description - Funkcja `editPost`, którą podałeś, służy do aktualizacji posta w bazie danych. Przyjmuje
+ * parametry takie jak `postId`, `title`, `description`, `imageUrl` i `additionalImages`.
+ * Funkcja aktualizuje tytuł posta, opis i URL obrazu w tabeli `posts`
+ * @param imageUrl - Parametr `imageUrl` w funkcji `editPost` reprezentuje URL głównego
+ * obrazu związanego z edytowanym postem. Ten URL jest używany do aktualizacji pola `image_url` w
+ * tabeli `posts` dla określonego `postId`.
+ * @param additionalImages - Parametr `additionalImages` w funkcji `editPost` reprezentuje
+ * tablicę URL obrazów, które są związane z postem zidentyfikowanym przez `postId`. Te dodatkowe
+ * obrazy zostaną zaktualizowane w bazie danych wraz z tytułem posta, opisem i URL głównego obrazu
+ * gdy funkcja `editPost`
+ * @returns Funkcja `editPost` zwraca Promise.
+ */
 const editPost = (postId, title, description, imageUrl, additionalImages) => {
   return new Promise((resolve, reject) => {
     db.query(`UPDATE posts
@@ -119,7 +198,13 @@ const editPost = (postId, title, description, imageUrl, additionalImages) => {
   });
 };
 
-// Function to delete a post along with related comments, likes, images, and tags
+/**
+ * Funkcja `deletePostById` usuwa post na podstawie jego ID wraz z powiązanymi danymi z powiązanych
+ * tabel w bazie danych, używając obietnic.
+ * @param postId - Funkcja `deletePostById` przyjmuje parametr `postId`, który jest unikalnym
+ * identyfikatorem posta, który należy usunąć z bazy danych.
+ * @returns Funkcja `deletePostById` zwraca Promise.
+ */
 const deletePostById = (postId) => {
   return new Promise((resolve, reject) => {
     db.query('DELETE FROM posts WHERE id = ?;', [postId], (err, results) => {
@@ -141,6 +226,7 @@ module.exports = {
   findAllPosts,
   findPostDetails,
   addLikeToPost,
+  removeLikeFromPost,
   incrementPostViews,
   editPost,
   deletePostById,

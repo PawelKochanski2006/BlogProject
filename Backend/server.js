@@ -5,7 +5,6 @@ const authRoutes = require('./routes/auth.routes');
 const postRoutes = require('./routes/post.routes');
 const commentRoutes = require('./routes/comment.routes');
 const galleryRoutes = require('./routes/gallery.routes');
-const likeRoutes = require('./routes/like.routes');
 
 // Wczytaj zmienne środowiskowe
 require('dotenv').config();

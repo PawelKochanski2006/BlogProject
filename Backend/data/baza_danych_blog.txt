@@ -1,14 +1,19 @@
 CREATE TABLE roles (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(50) UNIQUE NOT NULL,
-    description TEXT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(50) UNIQUE NOT NULL,
+  description TEXT,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+INSERT INTO roles (name, description) VALUES
+('admin', 'Pełny dostęp do wszystkich zasobów systemu.'),
+('user', 'Zwykły użytkownik z ograniczonymi uprawnieniami.');
+
 CREATE TABLE users (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    username VARCHAR(50) UNIQUE NOT NULL,
-    email VARCHAR(100) UNIQUE NOT NULL,
-    password_hash VARCHAR(255) NOT NULL,
+    username VARCHAR(50) UNIQUE NOT NULL, -- Nazwa użytkownika
+    email VARCHAR(100) UNIQUE NOT NULL, -- Email użytkownika
+    password_hash VARCHAR(255) NOT NULL, -- Zahaszowane hasło
     role_id INT NOT NULL DEFAULT 2,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (role_id) REFERENCES roles(id) ON DELETE RESTRICT
@@ -20,12 +25,6 @@ CREATE TABLE categories (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE tags (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(50) UNIQUE NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
 CREATE TABLE posts (
     id INT AUTO_INCREMENT PRIMARY KEY,
     date DATE NOT NULL,
@@ -33,7 +32,6 @@ CREATE TABLE posts (
     description TEXT,
     read_time VARCHAR(20),
     views INT DEFAULT 0,
-    comments_count INT DEFAULT 0,
     likes_count INT DEFAULT 0,
     image_url VARCHAR(255),
     alt_text VARCHAR(255),
@@ -42,14 +40,6 @@ CREATE TABLE posts (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE SET NULL,
     FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE CASCADE
-);
-
-CREATE TABLE post_tags (
-    post_id INT NOT NULL,
-    tag_id INT NOT NULL,
-    PRIMARY KEY (post_id, tag_id),
-    FOREIGN KEY (post_id) REFERENCES posts(id) ON DELETE CASCADE,
-    FOREIGN KEY (tag_id) REFERENCES tags(id) ON DELETE CASCADE
 );
 
 CREATE TABLE post_likes (
@@ -62,14 +52,37 @@ CREATE TABLE post_likes (
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
+CREATE TABLE tags (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(50) UNIQUE NOT NULL, -- Nazwa taga, np. 'AI', 'Programming'
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE post_tags (
+    post_id INT NOT NULL, -- ID posta
+    tag_id INT NOT NULL, -- ID taga
+    PRIMARY KEY (post_id, tag_id),
+    FOREIGN KEY (post_id) REFERENCES posts(id) ON DELETE CASCADE,
+    FOREIGN KEY (tag_id) REFERENCES tags(id) ON DELETE CASCADE
+);
+
+CREATE TABLE post_images (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    post_id INT NOT NULL, -- ID posta
+    image_url VARCHAR(255) NOT NULL, -- URL zdjęcia
+    alt_text VARCHAR(255), -- Alternatywny tekst dla zdjęcia
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (post_id) REFERENCES posts(id) ON DELETE CASCADE
+);
 
 CREATE TABLE comments (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    post_id INT NOT NULL,
-    user_id INT NOT NULL,
-    parent_comment_id INT DEFAULT NULL,
-    content TEXT NOT NULL,
+    post_id INT NOT NULL, -- ID posta
+    user_id INT NOT NULL, -- ID użytkownika
+    parent_comment_id INT DEFAULT NULL, -- ID nadrzędnego komentarza (NULL dla głównego)
+    content TEXT NOT NULL, -- Treść komentarza
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (post_id) REFERENCES posts(id) ON DELETE CASCADE,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
     FOREIGN KEY (parent_comment_id) REFERENCES comments(id) ON DELETE CASCADE
@@ -77,28 +90,27 @@ CREATE TABLE comments (
 
 CREATE TABLE gallery_categories (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(100) UNIQUE NOT NULL
+    name VARCHAR(100) UNIQUE NOT NULL, -- Nazwa kategorii, np. 'Nature', 'Technology'
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE gallery (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    user_id INT NOT NULL,
-    image_url VARCHAR(255) NOT NULL,
-    alt_text VARCHAR(255),
-    category_id INT NOT NULL,
+    user_id INT NOT NULL, -- ID użytkownika, który dodał zdjęcie
+    image_url VARCHAR(255) NOT NULL, -- URL zdjęcia
+    alt_text VARCHAR(255), -- Alternatywny tekst dla zdjęcia
+    category_id INT, -- Powiązanie z tabelą `gallery_categories`
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
-);
-
-CREATE TABLE post_images (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    post_id INT NOT NULL,
-    image_url VARCHAR(255) NOT NULL,
-    alt_text VARCHAR(255),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (post_id) REFERENCES posts(id) ON DELETE CASCADE
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (category_id) REFERENCES gallery_categories(id) ON DELETE SET NULL
 );
 
 
+-- Kategorie postów
+INSERT INTO categories (name) VALUES ('Technology'), ('Lifestyle');
 
-INSERT INTO gallery_categories (name) VALUES ('Nature'), ('Technology'), ('Lifestyle');
+-- Tagi
+INSERT INTO tags (name) VALUES ('AI'), ('Programming'), ('Cloud Computing');
+
+-- Kategorie galerii
+INSERT INTO gallery_categories (name) VALUES ('Nature'), ('Architecture');
