@@ -5,9 +5,17 @@ const API_URL = "http://localhost:8080";
  * @returns Funkcja `fetchPosts` zwraca Promise, który rozwiązuje się do danych JSON pobranych z endpointu `/posts`.
  */
 export const fetchPosts = async () => {
-  const response = await fetch(`${API_URL}/posts`);
-  return response.json();
+  try {
+    const response = await fetch(`${API_URL}/api/posts`);
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Error fetching posts:', error);
+    return [];
+  }
 };
+
+
 
 /**
  * Funkcja pobiera szczegóły posta o określonym ID z endpointu API i zwraca dane odpowiedzi w formacie JSON.
@@ -15,7 +23,7 @@ export const fetchPosts = async () => {
  * @returns Funkcja `fetchPostDetails` zwraca Promise, który rozwiązuje się do danych JSON szczegółów posta pobranych z endpointu API `/posts/`.
  */
 export const fetchPostDetails = async (id) => {
-  const response = await fetch(`${API_URL}/posts/${id}`);
+  const response = await fetch(`${API_URL}/api/posts/${id}`);
   return response.json();
 };
 
@@ -25,7 +33,7 @@ export const fetchPostDetails = async (id) => {
  * @returns Funkcja `addPost` zwraca odpowiedź JSON z API po wykonaniu żądania POST do `/posts` z podanymi danymi `post`.
  */
 export const addPost = async (post) => {
-  const response = await fetch(`${API_URL}/posts`, {
+  const response = await fetch(`${API_URL}/api/posts`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -41,7 +49,7 @@ export const addPost = async (post) => {
  * @returns Funkcja `deletePost` zwraca odpowiedź JSON z API po usunięciu posta o określonym `id`.
  */
 export const deletePost = async (id) => {
-  const response = await fetch(`${API_URL}/posts/${id}`, {
+  const response = await fetch(`${API_URL}/api/posts/${id}`, {
     method: "DELETE",
   });
   return response.json();
@@ -53,7 +61,7 @@ export const deletePost = async (id) => {
  * @returns Funkcja `updatePost` zwraca odpowiedź JSON z API po zaktualizowaniu posta.
  */
 export const updatePost = async (post) => {
-  const response = await fetch(`${API_URL}/posts/${post.id}`, {
+  const response = await fetch(`${API_URL}/api/posts/${post.id}`, {
     method: "PUT",
     headers: {
       "Content-Type": "application/json",
@@ -69,9 +77,15 @@ export const updatePost = async (post) => {
  * @returns Funkcja `fetchComments` zwraca Promise, który rozwiązuje się do danych JSON komentarzy związanych z określonym `postId`.
  */
 export const fetchComments = async (postId) => {
-  const response = await fetch(`${API_URL}/comments?postId=${postId}`);
-  return response.json();
-}
+  try {
+    const response = await fetch(`${API_URL}/api/comments/${postId}`);
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Error fetching comments:', error);
+    return [];
+  }
+};
 
 /**
  * Funkcja `addComment` wysyła żądanie POST do określonego endpointu API w celu dodania nowego komentarza i zwraca dane odpowiedzi jako JSON.

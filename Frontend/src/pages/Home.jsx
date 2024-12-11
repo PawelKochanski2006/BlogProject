@@ -1,14 +1,25 @@
+import React, { useEffect, useState } from 'react';
+import apiClient from '../api/apiClient';
+import PostCard from '../components/PostCard';
 
 const Home = () => {
+  const [posts, setPosts] = useState([]);
+
+  useEffect(() => {
+    apiClient.get('/posts')
+      .then(response => setPosts(response.data))
+      .catch(error => console.error('Error fetching posts:', error));
+  }, []);
+
   return (
-    <>
-      <h1 className="text-3xl font-bold">Mój Blog</h1>
-      <p className="mt-5">
-        Lorem ipsum dolor, sit amet consectetur adipisicing elit. Ad cum sapiente id deserunt aliquam. Itaque quisquam dolorem ut atque autem quasi voluptates quas quos recusandae! Nulla sunt labore cumque quam!
-        Doloribus necessitatibus exercitationem quibusdam hic esse, nihil ipsam et error. Explicabo tenetur ipsa hic, neque corrupti quo excepturi autem voluptatum. Quidem, perspiciatis necessitatibus. Repellat veniam quis quam sed accusamus? Ipsa.
-        Sequi, expedita! Odit quaerat a, unde sit omnis quisquam? Ea amet nisi, sunt delectus laborum eos tenetur eligendi deserunt quo molestias, quidem explicabo saepe consequuntur, libero exercitationem voluptate rem adipisci.
-      </p>
-    </>
+    <div className="container mx-auto px-4 py-8">
+      <h1 className="text-2xl font-bold text-gray-800 mb-6">Latest Posts</h1>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        {posts.map(post => (
+          <PostCard key={post.post_id} post={post} />
+        ))}
+      </div>
+    </div>
   );
 };
 

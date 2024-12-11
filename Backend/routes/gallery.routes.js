@@ -17,15 +17,15 @@ router.get('/', getGallery);
 router.get('/:category', getImagesByCategory);
 
 // Dodaj nowe zdjęcie (tylko dla admina)
-router.post('/', authMiddleware, addImage);
+router.post('/', authMiddleware(['admin']), addImage);
 
 // Zaktualizuj szczegóły zdjęcia (tylko dla admina)
-router.put('/:image_id', authMiddleware, updateImageDetails);
+router.put('/:image_id', authMiddleware(['admin']), updateImageDetails);
 
 // Usuń zdjęcie (tylko dla admina)
-router.delete('/:image_id', authMiddleware, deleteImageById);
+router.delete('/:image_id', authMiddleware(['admin']), deleteImageById);
 
 // Utwórz nową kategorię (tylko dla admina)
-router.post('/category', authMiddleware, createNewCategory);
+router.post('/category', authMiddleware(['admin']), createNewCategory);
 
 module.exports = router;

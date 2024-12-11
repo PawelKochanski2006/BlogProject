@@ -105,12 +105,62 @@ CREATE TABLE gallery (
     FOREIGN KEY (category_id) REFERENCES gallery_categories(id) ON DELETE SET NULL
 );
 
+INSERT INTO categories (name) VALUES
+('Technology'),
+('Lifestyle'),
+('Health');
 
--- Kategorie postów
-INSERT INTO categories (name) VALUES ('Technology'), ('Lifestyle');
+INSERT INTO posts (date, title, description, read_time, views, likes_count, image_url, alt_text, category_id, created_by) VALUES
+('2023-12-01', 'Exploring AI', 'A deep dive into AI and its future applications.', '5 min read', 120, 15, 'https://placehold.co/300x200', 'AI Image', 1, 1),
+('2023-12-02', 'Healthy Living Tips', 'Tips for a healthy and balanced lifestyle.', '3 min read', 80, 10, 'https://placehold.co/300x200', 'Lifestyle Image', 2, 2),
+('2023-12-03', 'The Future of Technology', 'How technology will shape our lives in 2030.', '7 min read', 200, 25, 'https://placehold.co/300x200', 'Future Tech Image', 1, 1);
 
--- Tagi
-INSERT INTO tags (name) VALUES ('AI'), ('Programming'), ('Cloud Computing');
+INSERT INTO tags (name) VALUES
+('AI'),
+('Technology'),
+('Health'),
+('Lifestyle');
 
--- Kategorie galerii
-INSERT INTO gallery_categories (name) VALUES ('Nature'), ('Architecture');
+INSERT INTO post_tags (post_id, tag_id) VALUES
+(1, 1), -- 'Exploring AI' -> 'AI'
+(1, 2), -- 'Exploring AI' -> 'Technology'
+(2, 3), -- 'Healthy Living Tips' -> 'Health'
+(2, 4), -- 'Healthy Living Tips' -> 'Lifestyle'
+(3, 2); -- 'The Future of Technology' -> 'Technology'
+
+INSERT INTO post_images (post_id, image_url, alt_text) VALUES
+(1, 'https://placehold.co/400x300', 'AI and Machine Learning'),
+(1, 'https://placehold.co/500x400', 'Future of AI'),
+(2, 'https://placehold.co/400x300', 'Healthy Eating'),
+(3, 'https://placehold.co/400x300', 'Tech Innovations'),
+(3, 'https://placehold.co/500x400', '2030 Tech Trends');
+
+
+INSERT INTO comments (post_id, user_id, parent_comment_id, content) VALUES
+(1, 2, NULL, 'Great insights about AI!'),
+(1, 1, 1, 'Thank you! Glad you found it helpful.'),
+(1, 3, 1, 'I agree, AI is the future.');
+
+INSERT INTO comments (post_id, user_id, parent_comment_id, content) VALUES
+(2, 3, NULL, 'This is very helpful for my lifestyle changes.'),
+(2, 2, 4, 'I am happy it helped you!');
+
+
+INSERT INTO post_likes (post_id, user_id) VALUES
+(1, 2), -- User 2 polubił post 1
+(1, 3), -- User 3 polubił post 1
+(2, 1), -- User 1 polubił post 2
+(3, 2), -- User 2 polubił post 3
+(3, 3); -- User 3 polubił post 3
+
+INSERT INTO gallery_categories (name) VALUES
+('Nature'),
+('Technology'),
+('Lifestyle');
+
+INSERT INTO gallery (user_id, image_url, alt_text, category_id) VALUES
+(1, 'https://placehold.co/300x300', 'Beautiful Landscape', 1),
+(2, 'https://placehold.co/300x300', 'Tech Innovations', 2),
+(3, 'https://placehold.co/300x300', 'Healthy Living Tips', 3),
+(1, 'https://placehold.co/300x300', 'AI in Action', 2),
+(2, 'https://placehold.co/300x300', 'Lifestyle Choice', 3);
