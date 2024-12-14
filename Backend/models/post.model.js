@@ -8,9 +8,20 @@ const db = require('../config/db.config');
  * wyświetlenia, liczba polubień, liczba komentarzy, kategoria, autor i data utworzenia. Posty są grupowane według
  * określonych pól i sortowane według daty utworzenia w kolejności malejącej. Jeśli zapytanie zakończy się sukcesem, funkcja zwraca
  */
-const findAllPosts = () => {
+const findAllPosts = (page = 1, limit = 10) => {
   return new Promise((resolve, reject) => {
-    db.query(`SELECT
+    // Oblicz offset na podstawie strony i limitu
+    const offset = (page - 1) * limit;
+    
+    // Najpierw pobierz całkowitą liczbę postów
+    db.query('SELECT COUNT(*) as total FROM posts', (err, countResults) => {
+      if (err) return reject(err);
+      
+      const total = countResults[0].total;
+      const totalPages = Math.ceil(total / limit);
+
+      // Następnie pobierz posty dla danej strony
+      db.query(`SELECT
                   p.id AS post_id,
                   p.title,
                   p.description,
@@ -29,14 +40,21 @@ const findAllPosts = () => {
               LEFT JOIN
                   categories cat ON p.category_id = cat.id
               JOIN
-                users u ON p.created_by = u.id
+                  users u ON p.created_by = u.id
               GROUP BY
                   p.id, p.title, p.description, p.image_url, p.read_time, p.views, p.likes_count, cat.name
               ORDER BY
-                  p.created_at DESC;
-    `, (err, results) => {
-      if (err) return reject(err);
-      resolve(results);
+                  p.created_at DESC
+              LIMIT ? OFFSET ?;
+      `, [limit, offset], (err, results) => {
+        if (err) return reject(err);
+        resolve({
+          posts: results,
+          currentPage: page,
+          totalPages: totalPages,
+          totalPosts: total
+        });
+      });
     });
   });
 };
@@ -65,6 +83,7 @@ const findPostDetails = (postId) => {
                 p.views,
                 p.likes_count,
                 p.image_url AS main_image,
+                p.created_at,
                 cat.name AS category,
                 u.username AS author,
                 GROUP_CONCAT(t.name) AS tags,
@@ -84,7 +103,7 @@ const findPostDetails = (postId) => {
               WHERE
                 p.id = ?
               GROUP BY
-                p.id, p.title, p.description, p.read_time, p.views, p.likes_count, p.image_url, cat.name;
+                p.id, p.title, p.description, p.read_time, p.views, p.likes_count, p.image_url, p.created_at, cat.name;
     `, [postId], (err, results) => {
       if (err) return reject(err);
       resolve(results[0]);

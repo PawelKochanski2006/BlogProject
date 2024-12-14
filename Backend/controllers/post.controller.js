@@ -24,8 +24,19 @@ const addPost = async (req, res) => {
  */
 const getAllPosts = async (req, res) => {
   try {
-    const posts = await postModel.findAllPosts();
-    res.json(posts);
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    
+    const result = await postModel.findAllPosts(page, limit);
+    res.json({
+      posts: result.posts,
+      pagination: {
+        currentPage: result.currentPage,
+        totalPages: result.totalPages,
+        totalPosts: result.totalPosts,
+        postsPerPage: limit
+      }
+    });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
