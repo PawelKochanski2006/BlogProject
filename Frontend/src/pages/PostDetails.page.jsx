@@ -1,20 +1,36 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import apiClient from '../api/apiClient';
+import CommentSection from '../components/Comments/CommentSection.component';
+import PostLikeButton from '../components/Posts/PostLikeButton.component';
+import Loading from '../components/common/Loading.component';
+import { useAuth } from '../contexts/AuthContext';
 
 const PostDetails = () => {
   const { id } = useParams();
+  const { isAuthenticated } = useAuth();
   const [post, setPost] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [isLiked, setIsLiked] = useState(false);
 
+  // Funkcja formatująca datę
+  const formatDate = dateString => {
+    return new Date(dateString).toLocaleDateString('pl-PL', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    });
+  };
+
+  // Pobieranie szczegółów posta
   useEffect(() => {
     const fetchPostDetails = async () => {
       try {
         const response = await apiClient.get(`/posts/${id}`);
-        console.log('Odpowiedź z API:', response.data);
-        console.log('Data utworzenia z API:', response.data.created_at);
-        setPost(response.data);
+        const postData = response.data;
+
+        setPost(postData);
         await apiClient.post(`/posts/${id}/views`);
       } catch (err) {
         setError('Nie udało się załadować szczegółów posta.');
@@ -27,30 +43,40 @@ const PostDetails = () => {
     fetchPostDetails();
   }, [id]);
 
-  // Funkcja pomocnicza do formatowania daty
-  const formatDate = (dateString) => {
-    console.log('Próba formatowania daty:', dateString); // Debugging
-    if (!dateString) {
-      console.log('Brak daty do sformatowania');
-      return 'Brak daty';
+  // Sprawdzanie statusu polubienia
+  useEffect(() => {
+    const checkLikeStatus = async () => {
+      if (isAuthenticated) {
+        try {
+          const response = await apiClient.get(`/posts/${id}/like-status`);
+          setIsLiked(response.data.isLiked);
+        } catch (err) {
+          console.error('Error checking like status:', err);
+        }
+      }
+    };
+
+    checkLikeStatus();
+  }, [id, isAuthenticated]);
+
+  // Obsługa polubień
+  const handleLikeClick = async () => {
+    if (!isAuthenticated) return;
+
+    try {
+      const response = await apiClient.post(`/posts/${id}/like`);
+      setPost(prev => ({
+        ...prev,
+        likes_count: response.data.likes_count,
+      }));
+      setIsLiked(response.data.isLiked);
+    } catch (err) {
+      console.error('Error liking post:', err);
     }
-
-    const date = new Date(dateString);
-    console.log('Utworzony obiekt Date:', date); // Debugging
-
-    return date.toLocaleString('pl-PL', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'      
-    });
   };
 
   if (loading) {
-    return (
-      <div className="flex justify-center items-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
-      </div>
-    );
+    return <Loading />;
   }
 
   if (error) {
@@ -71,32 +97,32 @@ const PostDetails = () => {
 
   // Definicje zmiennych przed renderowaniem
   const tags = post.tags ? post.tags.split(',').map(tag => tag.trim()) : [];
-  const additionalImages = post.additional_images 
+  const additionalImages = post.additional_images
     ? post.additional_images.split(',').map(img => img.trim())
     : [];
 
-    return (
-      <article className="container mx-auto px-4 py-8 max-w-4xl">
-        <header className="mb-8">
-          <div className="flex justify-between items-start mb-4">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">{post.title}</h1>
-              <div className="flex items-center text-gray-600 text-sm space-x-4">
-                <span>Autor: {post.author}</span>
-                <span>•</span>
-                <span>Kategoria: {post.category}</span>
-                {post.read_time && (
-                  <>
-                    <span>•</span>
-                    <span>Czas czytania: {post.read_time} min</span>
-                  </>
-                )}
-              </div>
-            </div>
-            <div className="text-sm text-gray-500">
-              Data utworzenia: {post.created_at ? formatDate(post.created_at) : 'Brak daty'}
+  return (
+    <article className="container mx-auto px-4 py-8 max-w-4xl">
+      <header className="mb-8">
+        <div className="flex justify-between items-start mb-4">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">{post.title}</h1>
+            <div className="flex items-center text-gray-600 text-sm space-x-4">
+              <span>Autor: {post.author}</span>
+              <span>•</span>
+              <span>Kategoria: {post.category}</span>
+              {post.read_time && (
+                <>
+                  <span>•</span>
+                  <span>Czas czytania: {post.read_time} min</span>
+                </>
+              )}
             </div>
           </div>
+          <div className="text-sm text-gray-500">
+            Data utworzenia: {post.created_at ? formatDate(post.created_at) : 'Brak daty'}
+          </div>
+        </div>
 
         {/* Statystyki */}
         <div className="flex items-center space-x-6 text-gray-600">
@@ -116,19 +142,19 @@ const PostDetails = () => {
       </header>
 
       {/* Główny obraz */}
-      <div className="mb-8">
-        <img
-          src={post.main_image}
-          alt={post.title}
-          className="w-full h-[400px] object-cover rounded-lg shadow-lg"
-        />
-      </div>
+      {post.main_image && (
+        <div className="mb-8">
+          <img
+            src={post.main_image}
+            alt={post.title}
+            className="w-full h-[400px] object-cover rounded-lg shadow-lg"
+          />
+        </div>
+      )}
 
       {/* Treść posta */}
       <div className="prose max-w-none mb-8">
-        <p className="text-gray-700 leading-relaxed">
-          {post.description}
-        </p>
+        <p className="text-gray-700 leading-relaxed">{post.description}</p>
       </div>
 
       {/* Tagi */}
@@ -165,6 +191,19 @@ const PostDetails = () => {
           </div>
         </div>
       )}
+
+      {/* Sekcja polubień */}
+      <div className="my-8">
+        <PostLikeButton
+          postId={id}
+          likesCount={post.likes_count}
+          isLiked={isLiked}
+          onLikeClick={handleLikeClick}
+        />
+      </div>
+
+      {/* Sekcja komentarzy */}
+      <CommentSection postId={id} />
     </article>
   );
 };

@@ -14,7 +14,7 @@ apiClient.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
-    console.log('Request config:', config);
+    // console.log('Request config:', config);
     return config;
   },
   (error) => {
@@ -26,7 +26,7 @@ apiClient.interceptors.request.use(
 // Interceptor dla odpowiedzi - włączamy z powrotem
 apiClient.interceptors.response.use(
   (response) => {
-    console.log('Response:', response);
+    // console.log('Response:', response);
     return response;
   },
   (error) => {

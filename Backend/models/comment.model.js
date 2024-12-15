@@ -12,9 +12,10 @@ const db = require('../config/db.config');
  * z danym ID posta. Wyniki są uporządkowane najpierw według ID nadrzędnego komentarza (jeśli dostępne),
  * a następnie według daty utworzenia. Jeśli są
  */
-const findCommentsByPostId = (postId) => {
+const findCommentsByPostId = postId => {
   return new Promise((resolve, reject) => {
-    db.query(`SELECT
+    db.query(
+      `SELECT
           c.id AS comment_id,
           c.content AS comment_content,
           c.parent_comment_id,
@@ -29,10 +30,13 @@ const findCommentsByPostId = (postId) => {
         ORDER BY
           COALESCE(c.parent_comment_id, c.id),
           c.created_at;
-    `, [postId], (err, results) => {
-    if (err) return reject(err);
-    resolve(results);
-    });
+    `,
+      [postId],
+      (err, results) => {
+        if (err) return reject(err);
+        resolve(results);
+      }
+    );
   });
 };
 
@@ -53,12 +57,24 @@ const findCommentsByPostId = (postId) => {
  */
 const addComment = (postId, userId, content, parentCommentId = null) => {
   return new Promise((resolve, reject) => {
-  db.query(`INSERT INTO comments (post_id, user_id, parent_comment_id, content)
-        VALUES (?, ?, ?, ?);
-  `, [postId, userId, parentCommentId, content], (err, results) => {
-    if (err) return reject(err);
-    resolve(results);
-  });
+    console.log('Adding comment to database:', {
+      postId,
+      userId,
+      content,
+      parentCommentId,
+    });
+
+    db.query(
+      `INSERT INTO comments (post_id, user_id, content, parent_comment_id) VALUES (?, ?, ?, ?);`,
+      [postId, userId, content, parentCommentId],
+      (err, results) => {
+        if (err) {
+          console.error('Database error:', err);
+          return reject(err);
+        }
+        resolve(results);
+      }
+    );
   });
 };
 
@@ -75,13 +91,17 @@ const addComment = (postId, userId, content, parentCommentId = null) => {
  */
 const editComment = (commentId, content) => {
   return new Promise((resolve, reject) => {
-  db.query(`UPDATE comments
+    db.query(
+      `UPDATE comments
         SET content = ?, updated_at = NOW()
         WHERE id = ?;
-  `, [content, commentId], (err, results) => {
-    if (err) return reject(err);
-    resolve(results);
-  });
+  `,
+      [content, commentId],
+      (err, results) => {
+        if (err) return reject(err);
+        resolve(results);
+      }
+    );
   });
 };
 
@@ -92,13 +112,17 @@ const editComment = (commentId, content) => {
  * usuwa odpowiedni komentarz z tabeli `comments`, gdzie `id` odpowiada podanemu `comment_id`.
  * @returns Funkcja `deleteComment` zwraca Promise.
  */
-const deleteComment = (commentId) => {
+const deleteComment = commentId => {
   return new Promise((resolve, reject) => {
-  db.query(`DELETE FROM comments WHERE id = ?;
-  `, [commentId], (err, results) => {
-    if (err) return reject(err);
-    resolve(results);
-  });
+    db.query(
+      `DELETE FROM comments WHERE id = ?;
+  `,
+      [commentId],
+      (err, results) => {
+        if (err) return reject(err);
+        resolve(results);
+      }
+    );
   });
 };
 

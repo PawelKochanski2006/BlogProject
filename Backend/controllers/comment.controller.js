@@ -6,13 +6,57 @@ const commentModel = require('../models/comment.model');
  * @param res - Obiekt odpowiedzi do wysłania odpowiedzi do klienta
  */
 const addComment = async (req, res) => {
-  const { postId, userId, content } = req.body;
-
   try {
-    const result = await commentModel.addComment(postId, userId, content);
-    res.status(201).json({ message: 'Comment added', commentId: result.insertId });
+    // Sprawdzamy czy mamy wszystkie wymagane dane
+    if (!req.body.postId || !req.body.content) {
+      return res.status(400).json({
+        message: 'Brak wymaganych danych',
+        required: ['postId', 'content'],
+        received: req.body,
+      });
+    }
+
+    // Pobieramy dane z req.body i req.user
+    const postId = Number(req.body.postId);
+    const userId = req.body.userId;
+    const content = req.body.content;
+    const parentCommentId = req.body.parentCommentId ? Number(req.body.parentCommentId) : null;
+
+    // Sprawdzamy czy postId jest prawidłową liczbą
+    if (isNaN(postId)) {
+      return res.status(400).json({
+        message: 'Nieprawidłowy format postId',
+        received: req.body.postId,
+      });
+    }
+
+    // Debug log
+    console.log('Processing comment data:', {
+      postId,
+      userId,
+      content,
+      parentCommentId,
+    });
+
+    const result = await commentModel.addComment(postId, userId, content, parentCommentId);
+
+    res.status(201).json({
+      message: 'Komentarz dodany pomyślnie',
+      commentId: result.insertId,
+      data: {
+        postId,
+        userId,
+        content,
+        parentCommentId,
+      },
+    });
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    console.error('Error in addComment controller:', err);
+    res.status(500).json({
+      message: 'Błąd podczas dodawania komentarza',
+      error: err.message,
+      details: err,
+    });
   }
 };
 
@@ -28,6 +72,7 @@ const getCommentsByPostId = async (req, res) => {
     const comments = await commentModel.findCommentsByPostId(postId);
     res.json(comments);
   } catch (err) {
+    console.error('Error in getCommentsByPostId controller:', err);
     res.status(500).json({ message: err.message });
   }
 };

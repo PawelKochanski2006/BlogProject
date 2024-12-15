@@ -3,6 +3,7 @@
 ## Authentication
 
 ### Register
+
 - **Endpoint:** `/api/auth/register`
 - **Method:** `POST`
 - **Description:** Tworzy nowego użytkownika
@@ -10,7 +11,7 @@
   ```json
   {
     "username": "string",
-    "email": "string", 
+    "email": "string",
     "password": "string"
   }
   ```
@@ -23,6 +24,7 @@
   ```
 
 ### Login
+
 - **Endpoint:** `/api/auth/login`
 - **Method:** `POST`
 - **Description:** Uwierzytelnia użytkownika i zwraca token JWT
@@ -41,8 +43,9 @@
   ```
 
 ### Get Current User
+
 - **Endpoint:** `/api/auth/me`
-- **Method:** `GET` 
+- **Method:** `GET`
 - **Description:** Pobiera dane aktualnie zalogowanego użytkownika
 - **Response:**
   ```json
@@ -57,6 +60,7 @@
 ## Posts
 
 ### Get All Posts
+
 - **Endpoint:** `/api/posts`
 - **Method:** `GET`
 - **Description:** Pobiera wszystkie posty
@@ -82,6 +86,7 @@
   ```
 
 ### Get Post by ID
+
 - **Endpoint:** `/api/posts/:id`
 - **Method:** `GET`
 - **Description:** Pobiera post po ID
@@ -89,7 +94,7 @@
   ```json
   {
     "id": "number",
-    "title": "string", 
+    "title": "string",
     "description": "string",
     "imageUrl": "string",
     "additionalImages": ["string"],
@@ -107,6 +112,7 @@
   ```
 
 ### Add Post
+
 - **Endpoint:** `/api/posts`
 - **Method:** `POST`
 - **Description:** Dodaje nowy post. Dostępne tylko dla admina.
@@ -129,6 +135,7 @@
   ```
 
 ### Edit Post
+
 - **Endpoint:** `/api/posts/:postId`
 - **Method:** `PUT`
 - **Description:** Edytuje istniejący post. Dostępne tylko dla admina.
@@ -150,6 +157,7 @@
   ```
 
 ### Delete Post
+
 - **Endpoint:** `/api/posts/:postId`
 - **Method:** `DELETE`
 - **Description:** Usuwa post. Dostępne tylko dla admina.
@@ -161,6 +169,7 @@
   ```
 
 ### Add Like to Post
+
 - **Endpoint:** `/api/posts/:postId/like`
 - **Method:** `POST`
 - **Description:** Dodaje polubienie do posta. Dostępne tylko dla zalogowanych użytkowników.
@@ -173,6 +182,7 @@
   ```
 
 ### Remove Like from Post
+
 - **Endpoint:** `/api/posts/:postId/unlike`
 - **Method:** `POST`
 - **Description:** Usuwa polubienie z posta. Dostępne tylko dla zalogowanych użytkowników.
@@ -185,6 +195,7 @@
   ```
 
 ### Increment Post Views
+
 - **Endpoint:** `/api/posts/:postId/views`
 - **Method:** `POST`
 - **Description:** Zwiększa licznik wyświetleń posta
@@ -199,6 +210,7 @@
 ## Comments
 
 ### Get Comments by Post ID
+
 - **Endpoint:** `/api/comments/:postId`
 - **Method:** `GET`
 - **Description:** Pobiera wszystkie komentarze dla danego posta
@@ -218,6 +230,7 @@
   ```
 
 ### Add Comment
+
 - **Endpoint:** `/api/comments`
 - **Method:** `POST`
 - **Description:** Dodaje nowy komentarz. Dostępne tylko dla zalogowanych użytkowników.
@@ -225,7 +238,9 @@
   ```json
   {
     "postId": "number",
-    "content": "string"
+    "userId": "number",
+    "content": "string",
+    "parentCommentId": "number" // gdy nie podasz to zmienna będzie = null
   }
   ```
 - **Response:**
@@ -237,6 +252,7 @@
   ```
 
 ### Edit Comment
+
 - **Endpoint:** `/api/comments/:id`
 - **Method:** `PUT`
 - **Description:** Edytuje istniejący komentarz. Dostępne tylko dla autora komentarza.
@@ -254,6 +270,7 @@
   ```
 
 ### Delete Comment
+
 - **Endpoint:** `/api/comments/:id`
 - **Method:** `DELETE`
 - **Description:** Usuwa komentarz. Dostępne dla admina lub autora komentarza.
@@ -267,6 +284,7 @@
 ## Gallery
 
 ### Get All Images
+
 - **Endpoint:** `/api/gallery`
 - **Method:** `GET`
 - **Description:** Pobiera wszystkie zdjęcia z galerii
@@ -291,6 +309,7 @@
   ```
 
 ### Get Images by Category
+
 - **Endpoint:** `/api/gallery/category/:categoryId`
 - **Method:** `GET`
 - **Description:** Pobiera zdjęcia z danej kategorii
@@ -315,6 +334,7 @@
   ```
 
 ### Add Image
+
 - **Endpoint:** `/api/gallery`
 - **Method:** `POST`
 - **Description:** Dodaje nowe zdjęcie do galerii. Dostępne tylko dla admina.
@@ -335,6 +355,7 @@
   ```
 
 ### Update Image Details
+
 - **Endpoint:** `/api/gallery/:image_id`
 - **Method:** `PUT`
 - **Description:** Aktualizuje szczegóły zdjęcia. Dostępne tylko dla admina.
@@ -354,6 +375,7 @@
   ```
 
 ### Delete Image
+
 - **Endpoint:** `/api/gallery/:image_id`
 - **Method:** `DELETE`
 - **Description:** Usuwa zdjęcie. Dostępne tylko dla admina.
@@ -365,6 +387,7 @@
   ```
 
 ### Get All Categories
+
 - **Endpoint:** `/api/gallery/categories`
 - **Method:** `GET`
 - **Description:** Pobiera wszystkie kategorie galerii
@@ -380,6 +403,7 @@
   ```
 
 ### Create New Category
+
 - **Endpoint:** `/api/gallery/categories`
 - **Method:** `POST`
 - **Description:** Tworzy nową kategorię w galerii. Dostępne tylko dla admina.
