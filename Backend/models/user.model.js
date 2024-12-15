@@ -11,27 +11,54 @@ const db = require('../config/db.config');
  * bcrypt, są często używane do bezpiecznego hashowania.
  * @returns Funkcja `createUser` zwraca Promise.
  */
-const createUser  = (username, email, password_hash) => {
+const createUser = (username, email, password_hash) => {
   return new Promise((resolve, reject) => {
-      db.query('INSERT INTO users (username, email, password_hash) VALUES (?, ?, ?)', [username, email, password_hash], (err, results) => {
-          if (err) return reject(err);
-          resolve(results);
-      });
+    db.query(
+      'INSERT INTO users (username, email, password_hash) VALUES (?, ?, ?)',
+      [username, email, password_hash],
+      (err, results) => {
+        if (err) return reject(err);
+        resolve(results);
+      }
+    );
   });
 };
 
 /**
- * Finds a user by their username or email.
- *
- * @param {string} usernameOrEmail - The username or email of the user to find.
- * @returns {Promise<Object>} A promise that resolves to the user object if found, or null if not found.
+ * Znajduje użytkownika po nazwie użytkownika lub emailu i zwraca jego dane wraz z rolą
+ * @param {string} usernameOrEmail - Nazwa użytkownika lub email
+ * @returns {Promise<Object>} Promise zwracający dane użytkownika
  */
-const findUserByUsernameOrEmail = (usernameOrEmail) => {
+const findUserByUsernameOrEmail = usernameOrEmail => {
   return new Promise((resolve, reject) => {
-    db.query('SELECT * FROM users WHERE username = ? or email = ?', [usernameOrEmail, usernameOrEmail], (err, results) => {
-      if (err) return reject(err);
-      resolve(results[0]);
-    });
+    db.query(
+      `
+        SELECT 
+          u.id,
+          u.username,
+          u.email,
+          u.password_hash,
+          u.created_at,
+          r.id as role_id,
+          r.name as role_name,
+          r.description as role_description
+        FROM users u
+        INNER JOIN roles r ON u.role_id = r.id
+        WHERE u.username = ? OR u.email = ?
+        LIMIT 1
+      `,
+      [usernameOrEmail, usernameOrEmail],
+      (err, results) => {
+        if (err) {
+          console.error('Database error:', err);
+          return reject(err);
+        }
+
+        const user = results[0];
+        console.log('Found user in database:', user);
+        resolve(user);
+      }
+    );
   });
 };
 
@@ -45,7 +72,8 @@ const findUserByUsernameOrEmail = (usernameOrEmail) => {
  */
 const getAllUsersWithRoles = () => {
   return new Promise((resolve, reject) => {
-    db.query(`
+    db.query(
+      `
       SELECT
         u.id AS user_id,
         u.username,
@@ -57,10 +85,12 @@ const getAllUsersWithRoles = () => {
         roles r ON u.role_id = r.id
       ORDER BY
         u.created_at DESC
-    `, (err, results) => {
-      if (err) return reject(err);
-      resolve(results);
-    });
+    `,
+      (err, results) => {
+        if (err) return reject(err);
+        resolve(results);
+      }
+    );
   });
 };
 
@@ -76,9 +106,10 @@ const getAllUsersWithRoles = () => {
  * liczbę polubień i liczbę komentarzy związanych z użytkownikiem. Funkcja zwraca szczegóły użytkownika, jeśli
  * zapytanie zakończy się sukcesem, lub zwraca błąd, jeśli wystąpi błąd podczas zapytania.
  */
-const getUserDetailsById = (userId) => {
+const getUserDetailsById = userId => {
   return new Promise((resolve, reject) => {
-    db.query(`
+    db.query(
+      `
       SELECT
         u.id AS user_id,
         u.username,
@@ -98,10 +129,13 @@ const getUserDetailsById = (userId) => {
         u.id = ?
       GROUP BY
         u.id, u.username, u.email, r.name
-    `, [userId], (err, results) => {
-      if (err) return reject(err);
-      resolve(results[0]);
-    });
+    `,
+      [userId],
+      (err, results) => {
+        if (err) return reject(err);
+        resolve(results[0]);
+      }
+    );
   });
 };
 
@@ -115,9 +149,10 @@ const getUserDetailsById = (userId) => {
  * wyświetleń, liczbę polubień i datę utworzenia postów, które polubił użytkownik. Wyniki są sortowane według daty
  * utworzenia w kolejności malejącej. Jeśli nie wystąpią błędy podczas zapytania do bazy danych,
  */
-const getUserLikedPosts = (userId) => {
+const getUserLikedPosts = userId => {
   return new Promise((resolve, reject) => {
-    db.query(`
+    db.query(
+      `
       SELECT
         p.id AS post_id,
         p.title,
@@ -134,10 +169,13 @@ const getUserLikedPosts = (userId) => {
         pl.user_id = ?
       ORDER BY
         p.created_at DESC
-    `, [userId], (err, results) => {
-      if (err) return reject(err);
-      resolve(results);
-    });
+    `,
+      [userId],
+      (err, results) => {
+        if (err) return reject(err);
+        resolve(results);
+      }
+    );
   });
 };
 
@@ -152,9 +190,10 @@ const getUserLikedPosts = (userId) => {
  * komentarza dla komentarzy związanych z określonym ID użytkownika. Wyniki są sortowane według daty utworzenia w
  * kolejności malejącej. Jeśli nie wystąpią błędy podczas zapytania do bazy danych,
  */
-const getUserComments = (userId) => {
+const getUserComments = userId => {
   return new Promise((resolve, reject) => {
-    db.query(`
+    db.query(
+      `
       SELECT
         c.id AS comment_id,
         c.content,
@@ -169,10 +208,13 @@ const getUserComments = (userId) => {
         c.user_id = ?
       ORDER BY
         c.created_at DESC
-    `, [userId], (err, results) => {
-      if (err) return reject(err);
-      resolve(results);
-    });
+    `,
+      [userId],
+      (err, results) => {
+        if (err) return reject(err);
+        resolve(results);
+      }
+    );
   });
 };
 
@@ -183,9 +225,10 @@ const getUserComments = (userId) => {
  * konkretnego użytkownika. Tablica zawiera obiekty z właściwościami takimi jak `image_id`, `image_url`, `alt_text`,
  * `category` i `created_at`.
  */
-const getUserGalleryImages = (userId) => {
+const getUserGalleryImages = userId => {
   return new Promise((resolve, reject) => {
-    db.query(`
+    db.query(
+      `
       SELECT
         g.id AS image_id,
         g.image_url,
@@ -200,10 +243,13 @@ const getUserGalleryImages = (userId) => {
         g.user_id = ?
       ORDER BY
         g.created_at DESC
-    `, [userId], (err, results) => {
-      if (err) return reject(err);
-      resolve(results);
-    });
+    `,
+      [userId],
+      (err, results) => {
+        if (err) return reject(err);
+        resolve(results);
+      }
+    );
   });
 };
 
@@ -231,7 +277,7 @@ const updateUserRole = (userId, newRoleId) => {
  * @returns Funkcja `getRoleIdByName` zwraca Promise, które zwraca ID roli pobrane z bazy danych na podstawie podanej
  * nazwy roli.
  */
-const getRoleIdByName = (roleName) => {
+const getRoleIdByName = roleName => {
   return new Promise((resolve, reject) => {
     db.query('SELECT id FROM roles WHERE name = ?', [roleName], (err, results) => {
       if (err) return reject(err);
@@ -249,7 +295,8 @@ const getRoleIdByName = (roleName) => {
  */
 const getAllUsersWithActivity = () => {
   return new Promise((resolve, reject) => {
-    db.query(`
+    db.query(
+      `
       SELECT
         u.id AS user_id,
         u.username,
@@ -270,10 +317,12 @@ const getAllUsersWithActivity = () => {
         u.id, u.username, u.email, r.name, u.created_at
       ORDER BY
         u.created_at DESC
-    `, (err, results) => {
-      if (err) return reject(err);
-      resolve(results);
-    });
+    `,
+      (err, results) => {
+        if (err) return reject(err);
+        resolve(results);
+      }
+    );
   });
 };
 
@@ -294,7 +343,8 @@ const getAllUsersWithActivity = () => {
  */
 const getUserActivityForPost = (userId, postId) => {
   return new Promise((resolve, reject) => {
-    db.query(`
+    db.query(
+      `
       SELECT
         p.title AS post_title,
         p.id AS post_id,
@@ -312,10 +362,13 @@ const getUserActivityForPost = (userId, postId) => {
         p.id = ?
       ORDER BY
         c.created_at
-    `, [userId, userId, postId], (err, results) => {
-      if (err) return reject(err);
-      resolve(results);
-    });
+    `,
+      [userId, userId, postId],
+      (err, results) => {
+        if (err) return reject(err);
+        resolve(results);
+      }
+    );
   });
 };
 
@@ -327,9 +380,10 @@ const getUserActivityForPost = (userId, postId) => {
  * określonej nazwy roli. Każdy obiekt użytkownika zawiera ID użytkownika, nazwę użytkownika, email i datę utworzenia,
  * posortowane w kolejności malejącej według daty utworzenia.
  */
-const getUsersByRole = (roleName) => {
+const getUsersByRole = roleName => {
   return new Promise((resolve, reject) => {
-    db.query(`
+    db.query(
+      `
       SELECT
         u.id AS user_id,
         u.username,
@@ -343,10 +397,13 @@ const getUsersByRole = (roleName) => {
         r.name = ?
       ORDER BY
         u.created_at DESC
-    `, [roleName], (err, results) => {
-      if (err) return reject(err);
-      resolve(results);
-    });
+    `,
+      [roleName],
+      (err, results) => {
+        if (err) return reject(err);
+        resolve(results);
+      }
+    );
   });
 };
 
@@ -357,12 +414,30 @@ const getUsersByRole = (roleName) => {
  * usunięty z tabeli `users` na podstawie podanego `userId`.
  * @returns Funkcja `deleteUser` zwraca Promise.
  */
-const deleteUser = (userId) => {
+const deleteUser = userId => {
   return new Promise((resolve, reject) => {
     db.query('DELETE FROM users WHERE id = ?', [userId], (err, results) => {
       if (err) return reject(err);
       resolve(results);
     });
+  });
+};
+
+/**
+ * Pobiera podstawowe dane użytkownika na podstawie jego ID
+ * @param {number} userId - ID użytkownika
+ * @returns {Promise} Promise zwracający dane użytkownika
+ */
+const getCurrentUserById = userId => {
+  return new Promise((resolve, reject) => {
+    db.query(
+      'SELECT id, username, email, created_at FROM users WHERE id = ?',
+      [userId],
+      (err, results) => {
+        if (err) return reject(err);
+        resolve(results[0]);
+      }
+    );
   });
 };
 
@@ -379,5 +454,6 @@ module.exports = {
   getAllUsersWithActivity,
   getUserActivityForPost,
   getUsersByRole,
-  deleteUser
+  deleteUser,
+  getCurrentUserById,
 };

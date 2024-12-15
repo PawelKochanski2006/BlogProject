@@ -1,12 +1,13 @@
 // src/components/CommentSection.jsx
 import React, { useState, useEffect } from 'react';
-import apiClient from '../api/apiClient';
+import apiClient from '../../api/apiClient';
 
 const CommentSection = ({ postId }) => {
   const [comments, setComments] = useState([]);
 
   useEffect(() => {
-    apiClient.get(`/comments/${postId}`)
+    apiClient
+      .get(`/comments/${postId}`)
       .then(response => setComments(response.data))
       .catch(error => console.error('Error fetching comments:', error));
   }, [postId]);

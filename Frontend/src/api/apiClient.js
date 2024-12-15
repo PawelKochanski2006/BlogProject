@@ -1,26 +1,41 @@
 import axios from 'axios';
 
 const apiClient = axios.create({
-  baseURL: process.env.REACT_APP_API_BASE_URL || 'http://localhost:5000/api',
+  baseURL: 'http://localhost:5000/api',
   headers: {
     'Content-Type': 'application/json',
   },
 });
 
-// Dodaj interceptor do logowania requestów (pomocne przy debugowaniu)
-apiClient.interceptors.request.use(request => {
-  console.log('Starting Request:', request);
-  return request;
-});
+// Interceptor dla requestów - dodawanie tokena
+apiClient.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    console.log('Request config:', config);
+    return config;
+  },
+  (error) => {
+    console.error('Request error:', error);
+    return Promise.reject(error);
+  }
+);
 
-// Dodaj interceptor do logowania odpowiedzi
+// Interceptor dla odpowiedzi - włączamy z powrotem
 apiClient.interceptors.response.use(
-  response => {
+  (response) => {
     console.log('Response:', response);
     return response;
   },
-  error => {
-    console.error('API Error:', error);
+  (error) => {
+    console.error('Response error:', error);
+    if (error.response?.status === 401) {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      window.location.href = '/login';
+    }
     return Promise.reject(error);
   }
 );

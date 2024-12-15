@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import apiClient from '../api/apiClient';
-import PostCard from '../components/PostCard';
+import PostCard from '../components/post/PostCard.component';
+import Loading from '../components/common/Loading.component';
 
 const POSTS_PER_PAGE = 12;
 
@@ -17,8 +18,8 @@ const Home = () => {
       setError(null);
       try {
         const response = await apiClient.get(`/posts?page=${currentPage}&limit=${POSTS_PER_PAGE}`);
-        console.log('API Response:', response.data); 
-        
+        console.log('API Response:', response.data);
+
         setPosts(response.data.posts);
         setTotalPages(response.data.pagination.totalPages);
       } catch (error) {
@@ -54,21 +55,17 @@ const Home = () => {
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-7xl">
-      <h1 className="text-2xl font-bold text-gray-800 mb-6 text-center">
-        Najnowsze Posty
-      </h1>
+      <h1 className="text-2xl font-bold text-gray-800 mb-6 text-center">Najnowsze Posty</h1>
 
       {loading ? (
-        <div className="flex justify-center items-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
-        </div>
+        <Loading />
       ) : (
         <>
           {posts.length === 0 ? (
             <p className="text-center text-gray-600">Brak dostępnych postów</p>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 justify-items-center">
-              {posts.map((post) => (
+              {posts.map(post => (
                 <PostCard key={post.post_id} post={post} />
               ))}
             </div>
@@ -82,26 +79,26 @@ const Home = () => {
                     onClick={handlePreviousPage}
                     disabled={currentPage === 1}
                     className={`px-4 py-2 rounded-md text-white ${
-                      currentPage === 1 
-                        ? 'bg-gray-400 cursor-not-allowed' 
+                      currentPage === 1
+                        ? 'bg-gray-400 cursor-not-allowed'
                         : 'bg-indigo-600 hover:bg-indigo-700'
                     }`}
                   >
                     Poprzednia
                   </button>
                 </li>
-                
+
                 <li className="text-gray-600">
                   Strona {currentPage} z {totalPages}
                 </li>
-                
+
                 <li>
                   <button
                     onClick={handleNextPage}
                     disabled={currentPage === totalPages}
                     className={`px-4 py-2 rounded-md text-white ${
-                      currentPage === totalPages 
-                        ? 'bg-gray-400 cursor-not-allowed' 
+                      currentPage === totalPages
+                        ? 'bg-gray-400 cursor-not-allowed'
                         : 'bg-indigo-600 hover:bg-indigo-700'
                     }`}
                   >
