@@ -2,33 +2,33 @@ const galleryModel = require('../models/gallery.model');
 const multer = require('multer');
 const path = require('path');
 
-// Konfiguracja multera dla przesyłania plików
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, 'public/images/gallery/full/');
-  },
-  filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
-    cb(null, uniqueSuffix + path.extname(file.originalname));
-  },
-});
+// // Konfiguracja multera dla przesyłania plików
+// const storage = multer.diskStorage({
+//   destination: (req, file, cb) => {
+//     cb(null, 'public/images/gallery/full/');
+//   },
+//   filename: (req, file, cb) => {
+//     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+//     cb(null, uniqueSuffix + path.extname(file.originalname));
+//   },
+// });
 
-const upload = multer({
-  storage: storage,
-  limits: {
-    fileSize: 5 * 1024 * 1024, // 5MB limit
-  },
-  fileFilter: (req, file, cb) => {
-    const filetypes = /jpeg|jpg|png|gif/;
-    const mimetype = filetypes.test(file.mimetype);
-    const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
+// const upload = multer({
+//   storage: storage,
+//   limits: {
+//     fileSize: 5 * 1024 * 1024, // 5MB limit
+//   },
+//   fileFilter: (req, file, cb) => {
+//     const filetypes = /jpeg|jpg|png|gif/;
+//     const mimetype = filetypes.test(file.mimetype);
+//     const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
 
-    if (mimetype && extname) {
-      return cb(null, true);
-    }
-    cb(new Error('Dozwolone są tylko pliki obrazów!'));
-  },
-}).single('image');
+//     if (mimetype && extname) {
+//       return cb(null, true);
+//     }
+//     cb(new Error('Dozwolone są tylko pliki obrazów!'));
+//   },
+// }).single('image');
 
 /**
  * Funkcja `getGallery` asynchronicznie pobiera wszystkie obrazy z modelu galerii i wysyła je jako odpowiedź JSON,
@@ -98,42 +98,60 @@ const getImagesByCategory = async (req, res) => {
  */
 const addImage = async (req, res) => {
   try {
-    // Używamy multera bezpośrednio
+    // Obsługa przesyłania pliku
     upload(req, res, async function (err) {
       if (err) {
-        console.error('Multer error:', err);
+        console.error('Błąd podczas przesyłania:', err);
         return res.status(400).json({
           message: 'Błąd podczas przesyłania pliku',
           error: err.message,
         });
       }
 
-      // Sprawdzamy czy plik został przesłany
+      // Sprawdzamy czy wszystkie wymagane pola są obecne
       if (!req.file) {
         return res.status(400).json({
           message: 'Nie przesłano pliku',
         });
       }
 
-      try {
-        const { user_id, alt_text, category_id } = req.body;
-        const image_url = `/images/gallery/full/${req.file.filename}`;
+      if (!req.body.alt_text) {
+        return res.status(400).json({
+          message: 'Brak opisu alternatywnego',
+        });
+      }
 
+      if (!req.body.category_id) {
+        return res.status(400).json({
+          message: 'Nie wybrano kategorii',
+        });
+      }
+
+      if (!req.body.user_id) {
+        return res.status(400).json({
+          message: 'Brak ID użytkownika',
+        });
+      }
+
+      const { user_id, alt_text, category_id } = req.body;
+      const image_url = `/images/gallery/full/${req.file.filename}`;
+
+      try {
         const result = await galleryModel.addImage(user_id, image_url, alt_text, category_id);
+
+        console.log('Zapisano obraz:', result);
         return res.status(201).json(result);
       } catch (dbError) {
-        console.error('Database error:', dbError);
+        console.error('Błąd bazy danych:', dbError);
         return res.status(500).json({
           message: 'Błąd podczas zapisywania w bazie danych',
-          error: dbError.message,
         });
       }
     });
   } catch (err) {
-    console.error('General error:', err);
+    console.error('Ogólny błąd:', err);
     return res.status(500).json({
       message: 'Wystąpił nieoczekiwany błąd',
-      error: err.message,
     });
   }
 };

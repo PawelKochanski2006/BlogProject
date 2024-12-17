@@ -1,40 +1,42 @@
 import axios from 'axios';
 
 const apiClient = axios.create({
-  baseURL: 'http://localhost:5000/api',
+  baseURL: process.env.REACT_APP_API_URL || 'http://localhost:5000/api',
+  timeout: 60000,
+  maxContentLength: Infinity,
+  maxBodyLength: Infinity,
   headers: {
     'Content-Type': 'application/json',
   }
 });
 
-// Interceptor dla requestów - dodawanie tokena
+// Interceptor dla requestów - dodawanie tokena oraz usuwanie Content-Type dla plików
 apiClient.interceptors.request.use(
-  config => {
+  (config) => {
+    if (config.url?.includes('/gallery')) {
+      delete config.headers['Content-Type'];
+    }
+    
     const token = localStorage.getItem('token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
-    // console.log('Request config:', config);
     return config;
   },
-  error => {
-    console.error('Request error:', error);
+  (error) => {
     return Promise.reject(error);
   }
 );
 
-// Interceptor dla odpowiedzi - włączamy z powrotem
+// Interceptor dla odpowiedzi
 apiClient.interceptors.response.use(
-  response => {
-    // console.log('Response:', response);
-    return response;
-  },
-  error => {
+  (response) => response,
+  (error) => {
     console.error('Response error:', error);
-    if (error.response?.status === 401) {
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
-      window.location.href = '/login';
+    if (error.code === 'ECONNABORTED') {
+      return Promise.reject({
+        message: 'Przekroczono czas oczekiwania na odpowiedź serwera. Spróbuj ponownie.'
+      });
     }
     return Promise.reject(error);
   }
