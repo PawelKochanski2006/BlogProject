@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import apiClient from '../api/apiClient';
-import PostCard from '../components/post/PostCard.component';
+import PostCard from '../components/Posts/PostCard.component';
 import Loading from '../components/common/Loading.component';
 
 const POSTS_PER_PAGE = 12;
@@ -18,7 +18,7 @@ const Home = () => {
       setError(null);
       try {
         const response = await apiClient.get(`/posts?page=${currentPage}&limit=${POSTS_PER_PAGE}`);
-        console.log('API Response:', response.data);
+        // console.log('API Response:', response.data); // debuging 
 
         setPosts(response.data.posts);
         setTotalPages(response.data.pagination.totalPages);

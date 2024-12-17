@@ -9,22 +9,23 @@ const db = require('../config/db.config');
  */
 const findAllImages = () => {
   return new Promise((resolve, reject) => {
-    db.query(`SELECT
-                  g.id AS image_id,
-                  g.image_url,
-                  g.alt_text,
-                  gc.name AS category,
-                  u.username AS uploaded_by,
-                  g.created_at
-              FROM
-                  gallery g
-              LEFT JOIN
-                  gallery_categories gc ON g.category_id = gc.id
-              JOIN
-                  users u ON g.user_id = u.id
-              ORDER BY
-                  g.created_at DESC;
-    `, (err, results) => {
+    const query = `SELECT
+                        g.id AS image_id,
+                        g.image_url,
+                        g.alt_text,
+                        gc.name AS category,
+                        u.username AS uploaded_by,
+                        g.created_at
+                    FROM
+                        gallery g
+                    LEFT JOIN
+                        gallery_categories gc ON g.category_id = gc.id
+                    JOIN
+                        users u ON g.user_id = u.id
+                    ORDER BY
+                        g.created_at DESC;`;
+
+    db.query(query, (err, results) => {
       if (err) return reject(err);
       resolve(results);
     });
@@ -42,26 +43,40 @@ const findAllImages = () => {
  * dla obrazów w określonej kategorii. Wyniki są uporządkowane według znacznika czasu created_at w kolejności
  * malejącej. Jeśli nie wystąpią błędy podczas zapytania do bazy danych, obietnica zostanie rozwiązana z wynikami.
  */
-const findAllImagesByCategory = (categoryName) => {
+const findAllImagesByCategory = categoryId => {
   return new Promise((resolve, reject) => {
-    db.query(`SELECT
-                  g.id AS image_id,
-                  g.image_url,
-                  g.alt_text,
-                  gc.name AS category,
-                  u.username AS uploaded_by,
-                  g.created_at
-              FROM
-                  gallery g
-              JOIN
-                  gallery_categories gc ON g.category_id = gc.id
-              JOIN
-                  users u ON g.user_id = u.id
-              WHERE
-                  gc.name = ?
-              ORDER BY
-                  g.created_at DESC;
-    `, [categoryName], (err, results) => {
+    const params = categoryId === 'all' ? [] : [categoryId];
+
+    const query =
+      categoryId === 'all'
+        ? `SELECT 
+            g.*, 
+            gc.name as category_name,
+            u.username as author_name
+          FROM 
+            gallery g 
+          LEFT JOIN 
+            gallery_categories gc ON g.category_id = gc.id
+          LEFT JOIN 
+            users u ON g.user_id = u.id 
+          ORDER BY 
+            g.created_at DESC`
+        : `SELECT 
+            g.*, 
+            gc.name as category_name, 
+            u.username as author_name
+          FROM 
+            gallery g 
+          LEFT JOIN 
+            gallery_categories gc ON g.category_id = gc.id
+          LEFT JOIN 
+            users u ON g.user_id = u.id 
+          WHERE 
+            g.category_id = ?
+          ORDER BY 
+            g.created_at DESC`;
+
+    db.query(query, params, (err, results) => {
       if (err) return reject(err);
       resolve(results);
     });
@@ -83,12 +98,24 @@ const findAllImagesByCategory = (categoryName) => {
  */
 const addImage = (user_id, image_url, alt_text, category_id) => {
   return new Promise((resolve, reject) => {
-    db.query(`INSERT INTO gallery (user_id, image_url, alt_text, category_id)
-              VALUES (?, ?, ?, ?);
-    `, [user_id, image_url, alt_text, category_id], (err, results) => {
-      if (err) return reject(err);
-      resolve(results);
-    });
+    db.query(
+      'INSERT INTO gallery (user_id, image_url, alt_text, category_id) VALUES (?, ?, ?, ?)',
+      [user_id, image_url, alt_text, category_id],
+      (err, result) => {
+        if (err) {
+          console.error('Database error in addImage:', err);
+          return reject(err);
+        }
+        // Zwracamy dodany rekord
+        resolve({
+          id: result.insertId,
+          user_id,
+          image_url,
+          alt_text,
+          category_id,
+        });
+      }
+    );
   });
 };
 
@@ -106,13 +133,17 @@ const addImage = (user_id, image_url, alt_text, category_id) => {
  */
 const updateImageDetails = (image_id, image_url, alt_text, category_id) => {
   return new Promise((resolve, reject) => {
-    db.query(`UPDATE gallery
+    db.query(
+      `UPDATE gallery
               SET image_url = ?, alt_text = ?, category_id = ?
               WHERE id = ?;
-    `, [image_url, alt_text, category_id, image_id], (err, results) => {
-      if (err) return reject(err);
-      resolve(results);
-    });
+    `,
+      [image_url, alt_text, category_id, image_id],
+      (err, results) => {
+        if (err) return reject(err);
+        resolve(results);
+      }
+    );
   });
 };
 
@@ -122,7 +153,7 @@ const updateImageDetails = (image_id, image_url, alt_text, category_id) => {
  * bazie danych.
  * @returns Funkcja `deleteImageById` zwraca obietnicę.
  */
-const deleteImageById = (image_id) => {
+const deleteImageById = image_id => {
   return new Promise((resolve, reject) => {
     db.query('DELETE FROM gallery WHERE id = ?', [image_id], (err, results) => {
       if (err) return reject(err);
@@ -137,7 +168,7 @@ const deleteImageById = (image_id) => {
  * wstawić do tabeli `gallery_categories` w bazie danych.
  * @returns Funkcja `createNewCategory` zwraca obietnicę.
  */
-const createNewCategory = (categoryName) => {
+const createNewCategory = categoryName => {
   return new Promise((resolve, reject) => {
     db.query('INSERT INTO gallery_categories (name) VALUES (?)', [categoryName], (err, results) => {
       if (err) return reject(err);
@@ -146,11 +177,24 @@ const createNewCategory = (categoryName) => {
   });
 };
 
+const findAllCategories = () => {
+  return new Promise((resolve, reject) => {
+    db.query('SELECT * FROM gallery_categories ORDER BY name', (err, results) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(results);
+      }
+    });
+  });
+};
+
 module.exports = {
-    findAllImages,
-    findAllImagesByCategory,
-    addImage,
-    updateImageDetails,
-    deleteImageById,
-    createNewCategory
+  findAllImages,
+  findAllImagesByCategory,
+  addImage,
+  updateImageDetails,
+  deleteImageById,
+  createNewCategory,
+  findAllCategories,
 };

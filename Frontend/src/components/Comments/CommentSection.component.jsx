@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import apiClient from '../../api/apiClient';
 import CommentList from './CommentList.component';
 import CommentForm from './CommentForm.component';
@@ -10,21 +10,21 @@ const CommentSection = ({ postId }) => {
   const [error, setError] = useState(null);
   const { isAuthenticated, user } = useAuth();
 
-  const fetchComments = async () => {
+  const fetchComments = useCallback(async () => {
     try {
       const response = await apiClient.get(`/comments/${postId}`);
       setComments(response.data);
     } catch (err) {
-      setError('Nie udało się załadować komentarzy.');
       console.error('Error fetching comments:', err);
+      setError('Nie udało się załadować komentarzy.');
     } finally {
       setLoading(false);
     }
-  };
+  }, [postId]);
 
   useEffect(() => {
     fetchComments();
-  }, [postId]);
+  }, [fetchComments]);
 
   const handleCommentSubmit = async (content, parentId = null) => {
     if (!user) return;

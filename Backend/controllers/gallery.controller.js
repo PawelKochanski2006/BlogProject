@@ -1,4 +1,34 @@
 const galleryModel = require('../models/gallery.model');
+const multer = require('multer');
+const path = require('path');
+
+// Konfiguracja multera dla przesyłania plików
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, 'public/images/gallery/full/');
+  },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+    cb(null, uniqueSuffix + path.extname(file.originalname));
+  },
+});
+
+const upload = multer({
+  storage: storage,
+  limits: {
+    fileSize: 5 * 1024 * 1024, // 5MB limit
+  },
+  fileFilter: (req, file, cb) => {
+    const filetypes = /jpeg|jpg|png|gif/;
+    const mimetype = filetypes.test(file.mimetype);
+    const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
+
+    if (mimetype && extname) {
+      return cb(null, true);
+    }
+    cb(new Error('Dozwolone są tylko pliki obrazów!'));
+  },
+}).single('image');
 
 /**
  * Funkcja `getGallery` asynchronicznie pobiera wszystkie obrazy z modelu galerii i wysyła je jako odpowiedź JSON,
@@ -14,9 +44,14 @@ const galleryModel = require('../models/gallery.model');
 const getGallery = async (req, res) => {
   try {
     const images = await galleryModel.findAllImages();
+    console.log('Fetched images:', images); // debugging
     res.json(images);
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    console.error('Error in getGallery:', err);
+    res.status(500).json({
+      message: 'Wystąpił błąd podczas pobierania galerii',
+      error: err.message,
+    });
   }
 };
 
@@ -28,8 +63,7 @@ const getGallery = async (req, res) => {
  * jest używane do wyodrębnienia kategorii.
  * @param res - Parametr `res` w funkcji `getImagesByCategory` jest obiektem odpowiedzi, który będzie używany do
  * wysłania odpowiedzi z powrotem do klienta składającego żądanie. Zazwyczaj jest używany do wysyłania odpowiedzi HTTP
- * z danymi lub komunikatami o błędach. W podanym fragmencie kodu `res` jest używane do wysyłania odpowiedzi JSON z
- * galerią.
+ * z danymi lub komunikatami o błędach.
  * @returns Jeśli `gallery` zostanie pomyślnie znalezione dla określonej kategorii, zostanie zwrócone jako odpowiedź
  * JSON za pomocą `res.json(gallery)`. Jeśli `gallery` nie zostanie znalezione (tj. `!gallery` jest prawdziwe),
  * zostanie zwrócony kod statusu 404 z odpowiedzią JSON `{ message: 'Zdjęcie nie znalezione' }`. Jeśli wystąpi błąd
@@ -37,14 +71,16 @@ const getGallery = async (req, res) => {
  */
 const getImagesByCategory = async (req, res) => {
   try {
-    const categoryName = req.params.category;
-    const images = await galleryModel.findAllImagesByCategory(categoryName);
-    if (!images.length) {
-      return res.status(404).json({ message: 'Zdjęcie nie znalezione' });
-    }
+    const categoryId = req.params.category;
+    console.log('Fetching images for category:', categoryId); // debugging
+    const images = await galleryModel.findAllImagesByCategory(categoryId);
     res.json(images);
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    console.error('Error in getImagesByCategory:', err);
+    res.status(500).json({
+      message: 'Wystąpił błąd podczas pobierania zdjęć dla kategorii',
+      error: err.message,
+    });
   }
 };
 
@@ -62,11 +98,43 @@ const getImagesByCategory = async (req, res) => {
  */
 const addImage = async (req, res) => {
   try {
-    const { user_id, image_url, alt_text, category_id } = req.body;
-    const result = await galleryModel.addImage(user_id, image_url, alt_text, category_id);
-    res.status(201).json(result);
+    // Używamy multera bezpośrednio
+    upload(req, res, async function (err) {
+      if (err) {
+        console.error('Multer error:', err);
+        return res.status(400).json({
+          message: 'Błąd podczas przesyłania pliku',
+          error: err.message,
+        });
+      }
+
+      // Sprawdzamy czy plik został przesłany
+      if (!req.file) {
+        return res.status(400).json({
+          message: 'Nie przesłano pliku',
+        });
+      }
+
+      try {
+        const { user_id, alt_text, category_id } = req.body;
+        const image_url = `/images/gallery/full/${req.file.filename}`;
+
+        const result = await galleryModel.addImage(user_id, image_url, alt_text, category_id);
+        return res.status(201).json(result);
+      } catch (dbError) {
+        console.error('Database error:', dbError);
+        return res.status(500).json({
+          message: 'Błąd podczas zapisywania w bazie danych',
+          error: dbError.message,
+        });
+      }
+    });
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    console.error('General error:', err);
+    return res.status(500).json({
+      message: 'Wystąpił nieoczekiwany błąd',
+      error: err.message,
+    });
   }
 };
 
@@ -86,7 +154,12 @@ const updateImageDetails = async (req, res) => {
   try {
     const { image_url, alt_text, category_id } = req.body;
     const { image_id } = req.params;
-    const result = await galleryModel.updateImageDetails(image_id, image_url, alt_text, category_id);
+    const result = await galleryModel.updateImageDetails(
+      image_id,
+      image_url,
+      alt_text,
+      category_id
+    );
     res.json(result);
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -137,11 +210,22 @@ const createNewCategory = async (req, res) => {
   }
 };
 
+const getGalleryCategories = async (req, res) => {
+  try {
+    const categories = await galleryModel.findAllCategories();
+    res.json(categories);
+  } catch (error) {
+    console.error('Error fetching gallery categories:', error);
+    res.status(500).json({ message: 'Błąd podczas pobierania kategorii galerii' });
+  }
+};
+
 module.exports = {
   getGallery,
   getImagesByCategory,
   addImage,
   updateImageDetails,
   deleteImageById,
-  createNewCategory
+  createNewCategory,
+  getGalleryCategories,
 };

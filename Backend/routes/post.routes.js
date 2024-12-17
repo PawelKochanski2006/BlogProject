@@ -8,7 +8,8 @@ const {
   addLike,
   removeLike,
   incrementPostViews,
-  editPost
+  editPost,
+  checkLikeStatus
 } = require('../controllers/post.controller');
 const authMiddleware = require('../middleware/auth.middleware');
 
@@ -18,20 +19,23 @@ router.get('/', getAllPosts);
 // Pobierz post po id (dostępne dla wszystkich)
 router.get('/:id', getPostById);
 
+// Sprawdź status polubienia (musi być przed /:id/like)
+router.get('/:postId/like/status', authMiddleware(), checkLikeStatus);
+
+// Dodaj polubienie do posta (tylko dla zalogowanych użytkowników)
+router.post('/:postId/like', authMiddleware(), addLike);
+
+// Usuń polubienie z posta (tylko dla zalogowanych użytkowników)
+router.delete('/:postId/like', authMiddleware(), removeLike);
+
+// Zwiększ liczbę wyświetleń posta (dostępne dla wszystkich)
+router.post('/:postId/views', incrementPostViews);
+
 // Dodaj nowy post (tylko dla admina)
 router.post('/', authMiddleware(['admin']), addPost);
 
 // Usuń post (tylko dla admina)
 router.delete('/:postId', authMiddleware(['admin']), deletePostById);
-
-// Dodaj polubienie do posta (tylko dla zalogowanych użytkowników)
-// router.post('/:postId/like', authMiddleware, addLikeToPost);
-router.post('/:postId/like', authMiddleware(), addLike);
-
-router.post('/:postId/unlike', authMiddleware(), removeLike);
-
-// Zwiększ liczbę wyświetleń posta (dostępne dla wszystkich)
-router.post('/:postId/views', incrementPostViews);
 
 // Edytuj post (tylko dla admina)
 router.put('/:postId', authMiddleware(['admin']), editPost);

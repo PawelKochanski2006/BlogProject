@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Dec 11, 2024 at 01:03 AM
+-- Generation Time: Dec 17, 2024 at 04:11 PM
 -- Wersja serwera: 10.4.32-MariaDB
 -- Wersja PHP: 8.2.12
 
@@ -70,7 +70,27 @@ INSERT INTO `comments` (`id`, `post_id`, `user_id`, `parent_comment_id`, `conten
 (29, 1, 2, 1, 'I agree, AI is the future.', '2024-12-10 23:55:37', '2024-12-10 23:55:37'),
 (33, 1, 1, 1, 'Thank you! Glad you found it helpful.', '2024-12-10 23:58:45', '2024-12-10 23:58:45'),
 (34, 1, 2, 2, 'I agree, AI is the future.', '2024-12-10 23:58:45', '2024-12-10 23:58:45'),
-(35, 2, 2, 3, 'I am happy it helped you!', '2024-12-10 23:58:45', '2024-12-10 23:58:45');
+(35, 2, 2, 3, 'I am happy it helped you!', '2024-12-10 23:58:45', '2024-12-10 23:58:45'),
+(36, 1, 5, NULL, 'Test :)', '2024-12-15 20:38:16', '2024-12-15 20:38:16'),
+(37, 1, 1, NULL, 'Test odpoweidzi na odpowiedz', '2024-12-15 22:42:49', '2024-12-15 22:42:49'),
+(38, 2, 5, 35, 'Siema \n', '2024-12-15 22:46:19', '2024-12-15 23:18:05'),
+(39, 2, 5, 35, 'No cześć \n', '2024-12-15 22:46:28', '2024-12-15 23:18:22'),
+(40, 2, 1, NULL, 'Test odpowiedz', '2024-12-15 22:52:08', '2024-12-15 22:52:08'),
+(41, 2, 1, NULL, 'dalczego\n', '2024-12-15 22:53:11', '2024-12-15 22:53:11'),
+(42, 2, 1, NULL, 'dsa', '2024-12-15 22:58:21', '2024-12-15 22:58:21'),
+(43, 2, 1, NULL, 'asds', '2024-12-15 22:58:31', '2024-12-15 22:58:31'),
+(44, 2, 1, NULL, 'test nwm który', '2024-12-15 23:03:15', '2024-12-15 23:03:15'),
+(45, 2, 1, NULL, 'aaaaaaaaaaaa', '2024-12-15 23:04:39', '2024-12-15 23:04:39'),
+(46, 4, 1, NULL, 'Test', '2024-12-15 23:06:24', '2024-12-15 23:06:24'),
+(47, 4, 1, NULL, 'sadasd', '2024-12-15 23:07:45', '2024-12-15 23:07:45'),
+(48, 4, 4, NULL, 'dsfsAF', '2024-12-15 23:13:15', '2024-12-15 23:13:15'),
+(49, 6, 3, NULL, 'Coś tam dla testu sobie pisze', '2024-12-15 23:17:06', '2024-12-15 23:17:06'),
+(50, 2, 3, NULL, 'Coś tam dla testu sobie pisze kolejny raz', '2024-12-15 23:22:54', '2024-12-15 23:22:54'),
+(51, 2, 4, NULL, 'Coś tam dla testu sobie pisze kolejny raz', '2024-12-15 23:25:30', '2024-12-15 23:25:30'),
+(52, 2, 4, 35, 'Coś tam dla testu sobie pisze kolejny raz', '2024-12-15 23:30:30', '2024-12-15 23:30:30'),
+(53, 4, 1, 48, 'Działa?', '2024-12-15 23:32:25', '2024-12-15 23:32:25'),
+(54, 4, 1, 53, 'a czy działa odpowiedz na odpowiedz?', '2024-12-15 23:32:47', '2024-12-15 23:32:47'),
+(55, 4, 1, 54, 'WOW DZIAŁA', '2024-12-15 23:33:04', '2024-12-15 23:33:04');
 
 -- --------------------------------------------------------
 
@@ -146,12 +166,12 @@ CREATE TABLE `posts` (
 --
 
 INSERT INTO `posts` (`id`, `date`, `title`, `description`, `read_time`, `views`, `likes_count`, `image_url`, `alt_text`, `category_id`, `created_by`, `created_at`) VALUES
-(1, '2023-12-01', 'Exploring AI', 'A deep dive into AI and its future applications.', '5 min read', 120, 15, 'https://placehold.co/300x200', 'AI Image', 1, 1, '2024-12-10 23:46:13'),
-(2, '2023-12-02', 'Healthy Living Tips', 'Tips for a healthy and balanced lifestyle.', '3 min read', 80, 10, 'https://placehold.co/300x200', 'Lifestyle Image', 2, 2, '2024-12-10 23:46:13'),
-(3, '2023-12-03', 'The Future of Technology', 'How technology will shape our lives in 2030.', '7 min read', 200, 25, 'https://placehold.co/300x200', 'Future Tech Image', 1, 1, '2024-12-10 23:46:13'),
-(4, '2023-12-01', 'Exploring AI', 'A deep dive into AI and its future applications.', '5 min read', 120, 15, 'https://placehold.co/300x200', 'AI Image', 1, 1, '2024-12-10 23:46:38'),
-(5, '2023-12-02', 'Healthy Living Tips', 'Tips for a healthy and balanced lifestyle.', '3 min read', 80, 10, 'https://placehold.co/300x200', 'Lifestyle Image', 2, 2, '2024-12-10 23:46:38'),
-(6, '2023-12-03', 'The Future of Technology', 'How technology will shape our lives in 2030.', '7 min read', 200, 25, 'https://placehold.co/300x200', 'Future Tech Image', 1, 1, '2024-12-10 23:46:38');
+(1, '2023-12-01', 'Exploring AI', 'A deep dive into AI and its future applications.', '5 min read', 237, 3, 'https://placehold.co/300x200', 'AI Image', 1, 1, '2024-12-10 23:46:13'),
+(2, '2023-12-02', 'Healthy Living Tips', 'Tips for a healthy and balanced lifestyle.', '3 min read', 107, 1, 'https://placehold.co/300x200', 'Lifestyle Image', 2, 2, '2024-12-10 23:46:13'),
+(3, '2023-12-03', 'The Future of Technology', 'How technology will shape our lives in 2030.', '7 min read', 209, 3, 'https://placehold.co/300x200', 'Future Tech Image', 1, 1, '2024-12-10 23:46:13'),
+(4, '2023-12-01', 'Exploring AI', 'A deep dive into AI and its future applications.', '5 min read', 220, 2, 'https://placehold.co/300x200', 'AI Image', 1, 1, '2024-12-10 23:46:38'),
+(5, '2023-12-02', 'Healthy Living Tips', 'Tips for a healthy and balanced lifestyle.', '3 min read', 121, 2, 'https://placehold.co/300x200', 'Lifestyle Image', 2, 2, '2024-12-10 23:46:38'),
+(6, '2023-12-03', 'The Future of Technology', 'How technology will shape our lives in 2030.', '7 min read', 235, 2, 'https://placehold.co/300x200', 'Future Tech Image', 1, 1, '2024-12-10 23:46:38');
 
 -- --------------------------------------------------------
 
@@ -197,8 +217,18 @@ CREATE TABLE `post_likes` (
 
 INSERT INTO `post_likes` (`id`, `post_id`, `user_id`, `created_at`) VALUES
 (55, 1, 2, '2024-12-11 00:01:16'),
-(56, 2, 1, '2024-12-11 00:01:16'),
-(57, 3, 2, '2024-12-11 00:01:16');
+(57, 3, 2, '2024-12-11 00:01:16'),
+(60, 5, 1, '2024-12-16 20:07:05'),
+(61, 6, 1, '2024-12-16 20:07:08'),
+(62, 3, 1, '2024-12-16 20:07:12'),
+(63, 2, 1, '2024-12-16 20:07:16'),
+(65, 1, 1, '2024-12-16 20:07:20'),
+(66, 4, 1, '2024-12-16 20:16:53'),
+(67, 5, 5, '2024-12-16 20:18:57'),
+(69, 1, 5, '2024-12-16 20:19:20'),
+(70, 4, 5, '2024-12-16 20:19:25'),
+(73, 3, 5, '2024-12-16 20:19:38'),
+(74, 6, 5, '2024-12-16 20:19:41');
 
 -- --------------------------------------------------------
 
@@ -277,7 +307,10 @@ CREATE TABLE `users` (
 
 INSERT INTO `users` (`id`, `username`, `email`, `password_hash`, `role_id`, `created_at`) VALUES
 (1, 'admin', 'admin@exapmle.com', '$2a$10$g8czUIt42L.7phlPe5/Qd.WpejZshiSIzCHkpIkr66K6WgFagoGki', 1, '2024-12-09 23:52:02'),
-(2, 'Ala', 'ala@exapmle.com', '$2a$10$d/x8nXj6zYApD2P5zC5gY.AG7G91DwdTLuTUwisfNpz8afnv6sAp6', 2, '2024-12-09 23:53:19');
+(2, 'Ala', 'ala@exapmle.com', '$2a$10$d/x8nXj6zYApD2P5zC5gY.AG7G91DwdTLuTUwisfNpz8afnv6sAp6', 2, '2024-12-09 23:53:19'),
+(3, 'Marek', 'marek@example.com', '$2a$10$6PegqiFqyUl6jCNTR46tPOkxnLgvphcr2osGHB7LfygyJBUr8yZDi', 2, '2024-12-15 00:22:02'),
+(4, 'Celina', 'celina@exapmle.com', '$2a$10$FZQVDH.4vruppmpDORqHq.c0jCw1ZoBCa/43eEgnn/Xvo6dx/0kH2', 2, '2024-12-15 00:47:10'),
+(5, 'Test', 'test@example.com', '$2a$10$j9K64vfwkuVS9AJPsZuKRu4OSFtttismVR7aLmBEeI1OvhFHu726K', 2, '2024-12-15 01:25:10');
 
 --
 -- Indeksy dla zrzutów tabel
@@ -381,7 +414,7 @@ ALTER TABLE `categories`
 -- AUTO_INCREMENT for table `comments`
 --
 ALTER TABLE `comments`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=36;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=56;
 
 --
 -- AUTO_INCREMENT for table `gallery`
@@ -393,7 +426,7 @@ ALTER TABLE `gallery`
 -- AUTO_INCREMENT for table `gallery_categories`
 --
 ALTER TABLE `gallery_categories`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
 -- AUTO_INCREMENT for table `posts`
@@ -411,7 +444,7 @@ ALTER TABLE `post_images`
 -- AUTO_INCREMENT for table `post_likes`
 --
 ALTER TABLE `post_likes`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=58;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=75;
 
 --
 -- AUTO_INCREMENT for table `roles`
@@ -429,7 +462,7 @@ ALTER TABLE `tags`
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- Constraints for dumped tables

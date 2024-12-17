@@ -1,18 +1,82 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
 import apiClient from '../api/apiClient';
 import CommentSection from '../components/Comments/CommentSection.component';
 import PostLikeButton from '../components/Posts/PostLikeButton.component';
 import Loading from '../components/common/Loading.component';
+import ErrorMessage from '../components/common/ErrorMessage.component';
 import { useAuth } from '../contexts/AuthContext';
 
 const PostDetails = () => {
   const { id } = useParams();
-  const { isAuthenticated } = useAuth();
+  const { user } = useAuth();
   const [post, setPost] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isLiked, setIsLiked] = useState(false);
+
+  // Funkcja pobierająca szczegóły posta
+  const fetchPostDetails = useCallback(async () => {
+    try {
+      const response = await apiClient.get(`/posts/${id}`);
+      setPost(response.data);
+      await apiClient.post(`/posts/${id}/views`);
+    } catch (err) {
+      setError('Nie udało się załadować szczegółów posta.');
+      console.error('Error fetching post details:', err);
+    } finally {
+      setLoading(false);
+    }
+  }, [id]);
+
+  // Sprawdzanie statusu polubienia
+  const checkLikeStatus = useCallback(async () => {
+    if (!user) return;
+
+    try {
+      const response = await apiClient.get(`/posts/${id}/like/status`);
+      console.log('Like status response:', response.data);
+      setIsLiked(response.data.isLiked);
+    } catch (err) {
+      console.error('Error checking like status:', err);
+      if (err.response) {
+        console.error('Error details:', err.response.data);
+      }
+    }
+  }, [id, user]);
+
+  // Obsługa polubień
+  const handleLikeClick = async () => {
+    if (!user) return;
+
+    try {
+      if (isLiked) {
+        await apiClient.delete(`/posts/${id}/like`);
+      } else {
+        await apiClient.post(`/posts/${id}/like`);
+      }
+
+      await checkLikeStatus();
+      await fetchPostDetails();
+    } catch (err) {
+      console.error('Error handling like:', err);
+      if (err.response) {
+        console.error('Error details:', err.response.data);
+      }
+    }
+  };
+
+  // Efekt pobierający dane posta
+  useEffect(() => {
+    fetchPostDetails();
+  }, [id, fetchPostDetails]);
+
+  // Efekt sprawdzający status polubienia
+  useEffect(() => {
+    if (user) {
+      checkLikeStatus();
+    }
+  }, [user, id, checkLikeStatus]);
 
   // Funkcja formatująca datę
   const formatDate = dateString => {
@@ -23,68 +87,12 @@ const PostDetails = () => {
     });
   };
 
-  // Pobieranie szczegółów posta
-  useEffect(() => {
-    const fetchPostDetails = async () => {
-      try {
-        const response = await apiClient.get(`/posts/${id}`);
-        const postData = response.data;
-
-        setPost(postData);
-        await apiClient.post(`/posts/${id}/views`);
-      } catch (err) {
-        setError('Nie udało się załadować szczegółów posta.');
-        console.error('Error fetching post details:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchPostDetails();
-  }, [id]);
-
-  // Sprawdzanie statusu polubienia
-  useEffect(() => {
-    const checkLikeStatus = async () => {
-      if (isAuthenticated) {
-        try {
-          const response = await apiClient.get(`/posts/${id}/like-status`);
-          setIsLiked(response.data.isLiked);
-        } catch (err) {
-          console.error('Error checking like status:', err);
-        }
-      }
-    };
-
-    checkLikeStatus();
-  }, [id, isAuthenticated]);
-
-  // Obsługa polubień
-  const handleLikeClick = async () => {
-    if (!isAuthenticated) return;
-
-    try {
-      const response = await apiClient.post(`/posts/${id}/like`);
-      setPost(prev => ({
-        ...prev,
-        likes_count: response.data.likes_count,
-      }));
-      setIsLiked(response.data.isLiked);
-    } catch (err) {
-      console.error('Error liking post:', err);
-    }
-  };
-
   if (loading) {
     return <Loading />;
   }
 
   if (error) {
-    return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="text-red-500 text-center">{error}</div>
-      </div>
-    );
+    return <ErrorMessage message={error} />;
   }
 
   if (!post) {
@@ -97,9 +105,11 @@ const PostDetails = () => {
 
   // Definicje zmiennych przed renderowaniem
   const tags = post.tags ? post.tags.split(',').map(tag => tag.trim()) : [];
-  const additionalImages = post.additional_images
+  const additionalImages = post.additional_images 
     ? post.additional_images.split(',').map(img => img.trim())
     : [];
+
+  console.log('Przetworzone dodatkowe zdjęcia:', additionalImages); // debugging
 
   return (
     <article className="container mx-auto px-4 py-8 max-w-4xl">
@@ -193,7 +203,7 @@ const PostDetails = () => {
       )}
 
       {/* Sekcja polubień */}
-      <div className="my-8">
+      <div className="my-6 flex justify-end">
         <PostLikeButton
           postId={id}
           likesCount={post.likes_count}

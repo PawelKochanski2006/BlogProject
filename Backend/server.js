@@ -5,6 +5,7 @@ const authRoutes = require('./routes/auth.routes');
 const postRoutes = require('./routes/post.routes');
 const commentRoutes = require('./routes/comment.routes');
 const galleryRoutes = require('./routes/gallery.routes');
+const path = require('path');
 
 // Wczytaj zmienne środowiskowe
 require('dotenv').config();
@@ -14,7 +15,20 @@ const PORT = process.env.PORT || 3000;
 
 // Middleware
 app.use(cors());
-app.use(bodyParser.json());
+app.use(bodyParser.json({ limit: '50mb' }));
+app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
+
+// Serwowanie statycznych plików
+// app.use('/images', express.static(path.join(__dirname, 'public/images')));
+app.use(
+  '/images',
+  express.static(path.join(__dirname, 'public/images'), {
+    // Opcje dla express.static
+    dotfiles: 'deny', // nie pozwalaj na dostęp do plików zaczynających się od kropki
+    etag: true, // włącz etagi dla lepszego cachowania
+    maxAge: '1d', // cache na 1 dzień
+  })
+);
 
 // Trasy
 app.use('/api/auth', authRoutes);

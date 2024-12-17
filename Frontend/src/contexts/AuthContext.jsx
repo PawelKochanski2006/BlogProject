@@ -34,7 +34,7 @@ export const AuthProvider = ({ children }) => {
 
     try {
       const response = await apiClient.get('/auth/me');
-      console.log('Auth check response:', response.data); // Debug
+      // console.log('Auth check response:', response.data); // Debug
 
       if (response.data) {
         setUser(response.data);
@@ -87,7 +87,7 @@ export const AuthProvider = ({ children }) => {
     setError(null);
     try {
       const response = await apiClient.post('/auth/login', { usernameOrEmail, password });
-      console.log('Login response:', response.data); // Debug
+      // console.log('Login response:', response.data); // Debug
 
       const { token, user: userData } = response.data;
       

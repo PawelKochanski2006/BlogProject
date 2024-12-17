@@ -74,7 +74,7 @@ const login = async (req, res) => {
           role: user.role_name,
         },
         JWT_SECRET,
-        { expiresIn: '1h' }
+        { expiresIn: process.env.TOKEN_LIFETIME || '24h' }
       );
 
       // Przygotuj obiekt użytkownika bez wrażliwych danych

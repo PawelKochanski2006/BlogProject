@@ -14,7 +14,7 @@ const Login = () => {
     setLoading(false);
 
     if (result.success) {
-      navigate('/');
+      navigate(-1);
     }
     return result;
   };

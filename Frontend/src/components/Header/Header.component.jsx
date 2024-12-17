@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Link, NavLink, useNavigate } from 'react-router-dom';
+import { Link, NavLink } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
-// TODO naprawić wylogowywanie się oraz zmianę linków gdy użytkownik jest zalogowany (wyloguj się) i wylogowany (zaloguj się) oraz sprawdzić pamięć lokalną czy jest token
+
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const { isAuthenticated, logout, user } = useAuth();
-  const navigate = useNavigate();
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -24,7 +23,6 @@ const Header = () => {
     if (window.confirm('Czy na pewno chcesz się wylogować?')) {
       logout();
       setIsDropdownOpen(false);
-      navigate('/');
     }
   };
 

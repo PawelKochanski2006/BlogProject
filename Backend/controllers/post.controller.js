@@ -70,12 +70,27 @@ const getPostById = async (req, res) => {
  * code and send data back in the response.
  */
 const addLike = async (req, res) => {
-  const { postId, userId } = req.body;
   try {
-    const result = await addLikeToPost(postId, userId);
-    res.status(200).json({ message: 'Like added successfully', result });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
+    const postId = Number(req.params.postId);
+    const userId = req.user.id; // Z middleware auth
+
+    if (!postId || !userId) {
+      return res.status(400).json({ 
+        message: 'Brak wymaganych danych',
+        required: { postId, userId }
+      });
+    }
+
+    console.log('Adding like:', { postId, userId });
+
+    const result = await postModel.addLikeToPost(postId, userId);
+    res.status(200).json({ 
+      message: 'Polubienie dodane',
+      result 
+    });
+  } catch (err) {
+    console.error('Error in addLike:', err);
+    res.status(500).json({ message: err.message });
   }
 };
 
@@ -92,12 +107,27 @@ const addLike = async (req, res) => {
  * responses with data such as
  */
 const removeLike = async (req, res) => {
-  const { postId, userId } = req.body;
   try {
-    const result = await removeLikeFromPost(postId, userId);
-    res.status(200).json({ message: 'Like removed successfully', result });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
+    const postId = Number(req.params.postId);
+    const userId = req.user.id; // Z middleware auth
+
+    if (!postId || !userId) {
+      return res.status(400).json({ 
+        message: 'Brak wymaganych danych',
+        required: { postId, userId }
+      });
+    }
+
+    console.log('Removing like:', { postId, userId });
+
+    const result = await postModel.removeLikeFromPost(postId, userId);
+    res.status(200).json({ 
+      message: 'Polubienie usunięte',
+      result 
+    });
+  } catch (err) {
+    console.error('Error in removeLike:', err);
+    res.status(500).json({ message: err.message });
   }
 };
 
@@ -150,6 +180,31 @@ const deletePostById = async (req, res) => {
   }
 };
 
+/**
+ * Nowa funkcja do sprawdzania statusu polubienia
+ * @param {Object} req - Obiekt żądania
+ * @param {Object} res - Obiekt odpowiedzi
+ */
+const checkLikeStatus = async (req, res) => {
+  try {
+    const postId = Number(req.params.postId);
+    const userId = req.user.id;
+
+    if (!postId || !userId) {
+      return res.status(400).json({ 
+        message: 'Brak wymaganych danych',
+        required: { postId, userId }
+      });
+    }
+
+    const isLiked = await postModel.checkIfUserLikedPost(postId, userId);
+    res.json({ isLiked });
+  } catch (err) {
+    console.error('Error in checkLikeStatus:', err);
+    res.status(500).json({ message: err.message });
+  }
+};
+
 module.exports = {
   addPost,
   getAllPosts,
@@ -159,4 +214,5 @@ module.exports = {
   incrementPostViews,
   editPost,
   deletePostById,
+  checkLikeStatus
 };

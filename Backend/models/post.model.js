@@ -12,16 +12,17 @@ const findAllPosts = (page = 1, limit = 10) => {
   return new Promise((resolve, reject) => {
     // Oblicz offset na podstawie strony i limitu
     const offset = (page - 1) * limit;
-    
+
     // Najpierw pobierz całkowitą liczbę postów
     db.query('SELECT COUNT(*) as total FROM posts', (err, countResults) => {
       if (err) return reject(err);
-      
+
       const total = countResults[0].total;
       const totalPages = Math.ceil(total / limit);
 
       // Następnie pobierz posty dla danej strony
-      db.query(`SELECT
+      db.query(
+        `SELECT
                   p.id AS post_id,
                   p.title,
                   p.description,
@@ -46,15 +47,18 @@ const findAllPosts = (page = 1, limit = 10) => {
               ORDER BY
                   p.created_at DESC
               LIMIT ? OFFSET ?;
-      `, [limit, offset], (err, results) => {
-        if (err) return reject(err);
-        resolve({
-          posts: results,
-          currentPage: page,
-          totalPages: totalPages,
-          totalPosts: total
-        });
-      });
+      `,
+        [limit, offset],
+        (err, results) => {
+          if (err) return reject(err);
+          resolve({
+            posts: results,
+            currentPage: page,
+            totalPages: totalPages,
+            totalPosts: total,
+          });
+        }
+      );
     });
   });
 };
@@ -73,15 +77,17 @@ const findAllPosts = (page = 1, limit = 10) => {
  * tagi związane z postem i dodatkowe obrazy związane z postem. Zapytanie łączy
  * wiele tabel (posts
  */
-const findPostDetails = (postId) => {
+const findPostDetails = postId => {
   return new Promise((resolve, reject) => {
-    db.query(`SELECT
+    db.query(
+      `SELECT
                 p.id AS post_id,
                 p.title,
                 p.description,
                 p.read_time,
                 p.views,
                 p.likes_count,
+                COUNT(c.id) AS comments_count,
                 p.image_url AS main_image,
                 p.created_at,
                 cat.name AS category,
@@ -90,6 +96,8 @@ const findPostDetails = (postId) => {
                 GROUP_CONCAT(pi.image_url SEPARATOR ', ') AS additional_images
               FROM
                 posts p
+              LEFT JOIN
+                comments c ON p.id = c.post_id
               LEFT JOIN
                 categories cat ON p.category_id = cat.id
               LEFT JOIN
@@ -104,10 +112,13 @@ const findPostDetails = (postId) => {
                 p.id = ?
               GROUP BY
                 p.id, p.title, p.description, p.read_time, p.views, p.likes_count, p.image_url, p.created_at, cat.name;
-    `, [postId], (err, results) => {
-      if (err) return reject(err);
-      resolve(results[0]);
-    });
+    `,
+      [postId],
+      (err, results) => {
+        if (err) return reject(err);
+        resolve(results[0]);
+      }
+    );
   });
 };
 
@@ -122,13 +133,21 @@ const findPostDetails = (postId) => {
  */
 const addLikeToPost = (postId, userId) => {
   return new Promise((resolve, reject) => {
-    db.query('INSERT INTO post_likes (post_id, user_id) VALUES (?, ?)', [postId, userId], (err, results) => {
-      if (err) return reject(err);
-      db.query('UPDATE posts SET likes_count = (SELECT COUNT(*) FROM post_likes WHERE post_id = ?) WHERE id = ?', [postId, postId], (err, results) => {
+    db.query(
+      'INSERT INTO post_likes (post_id, user_id) VALUES (?, ?)',
+      [postId, userId],
+      (err, results) => {
         if (err) return reject(err);
-        resolve(results);
-      });
-    });
+        db.query(
+          'UPDATE posts SET likes_count = (SELECT COUNT(*) FROM post_likes WHERE post_id = ?) WHERE id = ?',
+          [postId, postId],
+          (err, results) => {
+            if (err) return reject(err);
+            resolve(results);
+          }
+        );
+      }
+    );
   });
 };
 
@@ -145,13 +164,21 @@ const addLikeToPost = (postId, userId) => {
  */
 const removeLikeFromPost = (postId, userId) => {
   return new Promise((resolve, reject) => {
-    db.query('DELETE FROM post_likes WHERE post_id = ? AND user_id = ?', [postId, userId], (err, results) => {
-      if (err) return reject(err);
-      db.query('UPDATE posts SET likes_count = (SELECT COUNT(*) FROM post_likes WHERE post_id = ?) WHERE id = ?', [postId, postId], (err, results) => {
+    db.query(
+      'DELETE FROM post_likes WHERE post_id = ? AND user_id = ?',
+      [postId, userId],
+      (err, results) => {
         if (err) return reject(err);
-        resolve(results);
-      });
-    });
+        db.query(
+          'UPDATE posts SET likes_count = (SELECT COUNT(*) FROM post_likes WHERE post_id = ?) WHERE id = ?',
+          [postId, postId],
+          (err, results) => {
+            if (err) return reject(err);
+            resolve(results);
+          }
+        );
+      }
+    );
   });
 };
 
@@ -162,7 +189,7 @@ const removeLikeFromPost = (postId, userId) => {
  * zwiększyć liczbę wyświetleń w bazie danych.
  * @returns Funkcja `incrementPostViews` zwraca Promise.
  */
-const incrementPostViews = (postId) => {
+const incrementPostViews = postId => {
   return new Promise((resolve, reject) => {
     db.query('UPDATE posts SET views = views + 1 WHERE id = ?', [postId], (err, results) => {
       if (err) return reject(err);
@@ -194,26 +221,30 @@ const incrementPostViews = (postId) => {
  */
 const editPost = (postId, title, description, imageUrl, additionalImages) => {
   return new Promise((resolve, reject) => {
-    db.query(`UPDATE posts
+    db.query(
+      `UPDATE posts
               SET
                 title = ?,
                 description = ?,
                 image_url = ?,
                 updated_at = NOW()
               WHERE
-                id = ?;`, [title, description, imageUrl, postId], (err, results) => {
-      if (err) return reject(err);
-
-      db.query(`DELETE FROM post_images WHERE post_id = ?;`, [postId], (err) => {
+                id = ?;`,
+      [title, description, imageUrl, postId],
+      (err, results) => {
         if (err) return reject(err);
 
-        const imageValues = additionalImages.map(image => [postId, image]);
-        db.query(`INSERT INTO post_images (post_id, image_url) VALUES ?;`, [imageValues], (err) => {
+        db.query(`DELETE FROM post_images WHERE post_id = ?;`, [postId], err => {
           if (err) return reject(err);
-          resolve(results);
+
+          const imageValues = additionalImages.map(image => [postId, image]);
+          db.query(`INSERT INTO post_images (post_id, image_url) VALUES ?;`, [imageValues], err => {
+            if (err) return reject(err);
+            resolve(results);
+          });
         });
-      });
-    });
+      }
+    );
   });
 };
 
@@ -224,20 +255,33 @@ const editPost = (postId, title, description, imageUrl, additionalImages) => {
  * identyfikatorem posta, który należy usunąć z bazy danych.
  * @returns Funkcja `deletePostById` zwraca Promise.
  */
-const deletePostById = (postId) => {
+const deletePostById = postId => {
   return new Promise((resolve, reject) => {
     db.query('DELETE FROM posts WHERE id = ?;', [postId], (err, results) => {
       if (err) return reject(err);
 
-      db.query('DELETE FROM post_tags WHERE post_id = ?;', [postId], (err) => {
+      db.query('DELETE FROM post_tags WHERE post_id = ?;', [postId], err => {
         if (err) return reject(err);
 
-        db.query('DELETE FROM post_images WHERE post_id = ?;', [postId], (err) => {
+        db.query('DELETE FROM post_images WHERE post_id = ?;', [postId], err => {
           if (err) return reject(err);
           resolve(results);
         });
       });
     });
+  });
+};
+
+const checkIfUserLikedPost = (postId, userId) => {
+  return new Promise((resolve, reject) => {
+    db.query(
+      'SELECT COUNT(*) as count FROM post_likes WHERE post_id = ? AND user_id = ?',
+      [postId, userId],
+      (err, results) => {
+        if (err) return reject(err);
+        resolve(results[0].count > 0);
+      }
+    );
   });
 };
 
@@ -249,4 +293,5 @@ module.exports = {
   incrementPostViews,
   editPost,
   deletePostById,
+  checkIfUserLikedPost,
 };
