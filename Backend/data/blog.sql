@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Dec 17, 2024 at 04:11 PM
+-- Generation Time: Dec 18, 2024 at 01:11 AM
 -- Wersja serwera: 10.4.32-MariaDB
 -- Wersja PHP: 8.2.12
 
@@ -166,12 +166,12 @@ CREATE TABLE `posts` (
 --
 
 INSERT INTO `posts` (`id`, `date`, `title`, `description`, `read_time`, `views`, `likes_count`, `image_url`, `alt_text`, `category_id`, `created_by`, `created_at`) VALUES
-(1, '2023-12-01', 'Exploring AI', 'A deep dive into AI and its future applications.', '5 min read', 237, 3, 'https://placehold.co/300x200', 'AI Image', 1, 1, '2024-12-10 23:46:13'),
-(2, '2023-12-02', 'Healthy Living Tips', 'Tips for a healthy and balanced lifestyle.', '3 min read', 107, 1, 'https://placehold.co/300x200', 'Lifestyle Image', 2, 2, '2024-12-10 23:46:13'),
-(3, '2023-12-03', 'The Future of Technology', 'How technology will shape our lives in 2030.', '7 min read', 209, 3, 'https://placehold.co/300x200', 'Future Tech Image', 1, 1, '2024-12-10 23:46:13'),
-(4, '2023-12-01', 'Exploring AI', 'A deep dive into AI and its future applications.', '5 min read', 220, 2, 'https://placehold.co/300x200', 'AI Image', 1, 1, '2024-12-10 23:46:38'),
-(5, '2023-12-02', 'Healthy Living Tips', 'Tips for a healthy and balanced lifestyle.', '3 min read', 121, 2, 'https://placehold.co/300x200', 'Lifestyle Image', 2, 2, '2024-12-10 23:46:38'),
-(6, '2023-12-03', 'The Future of Technology', 'How technology will shape our lives in 2030.', '7 min read', 235, 2, 'https://placehold.co/300x200', 'Future Tech Image', 1, 1, '2024-12-10 23:46:38');
+(1, '2023-12-01', 'Exploring AI', 'A deep dive into AI and its future applications.', '5 min read', 241, 3, 'https://placehold.co/300x200', 'AI Image', 1, 1, '2024-12-10 23:46:13'),
+(2, '2023-12-02', 'Healthy Living Tips', 'Tips for a healthy and balanced lifestyle.', '3 min read', 136, 1, 'https://placehold.co/300x200', 'Lifestyle Image', 2, 2, '2024-12-10 23:46:13'),
+(3, '2023-12-03', 'The Future of Technology', 'How technology will shape our lives in 2030.', '7 min read', 210, 3, 'https://placehold.co/300x200', 'Future Tech Image', 1, 1, '2024-12-10 23:46:13'),
+(4, '2023-12-01', 'Exploring AI', 'A deep dive into AI and its future applications.', '5 min read', 238, 2, 'https://placehold.co/300x200', 'AI Image', 1, 1, '2024-12-10 23:46:38'),
+(5, '2023-12-02', 'Healthy Living Tips', 'Tips for a healthy and balanced lifestyle.', '3 min read', 133, 2, 'https://placehold.co/300x200', 'Lifestyle Image', 2, 2, '2024-12-10 23:46:38'),
+(6, '2023-12-03', 'The Future of Technology', 'How technology will shape our lives in 2030.', '7 min read', 239, 2, 'https://placehold.co/300x200', 'Future Tech Image', 1, 1, '2024-12-10 23:46:38');
 
 -- --------------------------------------------------------
 
