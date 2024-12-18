@@ -87,31 +87,29 @@ const findPostDetails = postId => {
                 p.read_time,
                 p.views,
                 p.likes_count,
-                COUNT(c.id) AS comments_count,
+                (SELECT COUNT(*) FROM comments WHERE post_id = p.id) AS comments_count,
                 p.image_url AS main_image,
                 p.created_at,
                 cat.name AS category,
                 u.username AS author,
-                GROUP_CONCAT(t.name) AS tags,
-                GROUP_CONCAT(pi.image_url SEPARATOR ', ') AS additional_images
+                GROUP_CONCAT(DISTINCT t.name) AS tags,
+                GROUP_CONCAT(DISTINCT pi.image_url SEPARATOR ', ') AS additional_images
               FROM
                 posts p
-              LEFT JOIN
-                comments c ON p.id = c.post_id
-              LEFT JOIN
+              JOIN
                 categories cat ON p.category_id = cat.id
+              JOIN
+                users u ON p.created_by = u.id
               LEFT JOIN
                 post_tags pt ON p.id = pt.post_id
               LEFT JOIN
                 tags t ON pt.tag_id = t.id
               LEFT JOIN
                 post_images pi ON p.id = pi.post_id
-              JOIN
-                users u ON p.created_by = u.id
               WHERE
                 p.id = ?
               GROUP BY
-                p.id, p.title, p.description, p.read_time, p.views, p.likes_count, p.image_url, p.created_at, cat.name;
+                p.id, p.title, p.description, p.read_time, p.views, p.likes_count, p.image_url, p.created_at, cat.name, u.username;
     `,
       [postId],
       (err, results) => {

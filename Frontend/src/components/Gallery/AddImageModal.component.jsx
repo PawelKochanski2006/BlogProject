@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import apiClient from '../../api/apiClient';
 
@@ -7,8 +7,10 @@ const AddImageModal = ({ isOpen, onClose, onImageAdded }) => {
   const [preview, setPreview] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [uploadProgress, setUploadProgress] = useState(0);
   const [categories, setCategories] = useState([]);
   const { user } = useAuth();
+  const fileInputRef = useRef(null);
 
   const [formData, setFormData] = useState({
     alt_text: '',
@@ -31,25 +33,47 @@ const AddImageModal = ({ isOpen, onClose, onImageAdded }) => {
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      if (file.size > 5 * 1024 * 1024) {
-        setError('Plik nie może być większy niż 5MB');
-        return;
-      }
-      
-      if (!['image/jpeg', 'image/png', 'image/gif'].includes(file.type)) {
-        setError('Dozwolone są tylko pliki JPG, PNG i GIF');
+      // Walidacja rozmiaru (10MB)
+      if (file.size > 10 * 1024 * 1024) {
+        setError('Plik nie może być większy niż 10MB');
         return;
       }
 
+      // Walidacja typu pliku
+      if (!['image/jpeg', 'image/png', 'image/gif', 'image/webp'].includes(file.type)) {
+        setError('Dozwolone są tylko pliki JPG, PNG, GIF i WEBP');
+        return;
+      }
+
+      // Tworzenie podglądu
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPreview(reader.result);
+      };
+      reader.readAsDataURL(file);
+
       setSelectedFile(file);
-      setPreview(URL.createObjectURL(file));
       setError(null);
+    }
+  };
+
+  const resetForm = () => {
+    setSelectedFile(null);
+    setPreview('');
+    setFormData({
+      alt_text: '',
+      category_id: ''
+    });
+    setError(null);
+    setUploadProgress(0);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
     }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!selectedFile) {
       setError('Wybierz plik do przesłania');
       return;
@@ -74,34 +98,26 @@ const AddImageModal = ({ isOpen, onClose, onImageAdded }) => {
     formDataToSend.append('category_id', formData.category_id);
     formDataToSend.append('user_id', user.id);
 
-    try { 
-      // debugging
-      console.log('Rozpoczynam wysyłanie pliku...');
-      console.log('Rozmiar pliku:', selectedFile.size);
-      console.log('Typ pliku:', selectedFile.type);
-
+    try {
       const response = await apiClient.post('/gallery', formDataToSend, {
         headers: {
           'Accept': 'application/json',
         },
+        timeout: 60000,
         onUploadProgress: (progressEvent) => {
           const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
-          console.log('Postęp wysyłania:', percentCompleted + '%');
+          setUploadProgress(percentCompleted);
         }
       });
 
-      console.log('Odpowiedź z serwera:', response.data); // debugging
-      
       if (response.data) {
         onImageAdded(response.data);
+        resetForm();
         onClose();
       }
     } catch (err) {
       console.error('Błąd podczas przesyłania:', err);
-      setError(
-        err.message || 
-        'Błąd podczas przesyłania pliku. Spróbuj ponownie.'
-      );
+      setError(err.response?.data?.message || 'Błąd podczas przesyłania pliku');
     } finally {
       setLoading(false);
     }
@@ -110,18 +126,19 @@ const AddImageModal = ({ isOpen, onClose, onImageAdded }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
       <div className="bg-white rounded-lg p-6 max-w-md w-full">
         <h2 className="text-xl font-bold mb-4">Dodaj nowe zdjęcie</h2>
-        
+
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700">
               Wybierz zdjęcie
             </label>
             <input
+              ref={fileInputRef}
               type="file"
-              accept="image/*"
+              accept="image/jpeg,image/png,image/gif,image/webp"
               onChange={handleFileChange}
               className="w-full mt-1"
             />
@@ -166,6 +183,15 @@ const AddImageModal = ({ isOpen, onClose, onImageAdded }) => {
             </select>
           </div>
 
+          {loading && (
+            <div className="w-full bg-gray-200 rounded-full h-2.5">
+              <div
+                className="bg-blue-600 h-2.5 rounded-full transition-all duration-300"
+                style={{ width: `${uploadProgress}%` }}
+              />
+            </div>
+          )}
+
           {error && (
             <div className="text-red-500 text-sm">{error}</div>
           )}
@@ -173,7 +199,10 @@ const AddImageModal = ({ isOpen, onClose, onImageAdded }) => {
           <div className="flex justify-end space-x-2">
             <button
               type="button"
-              onClick={onClose}
+              onClick={() => {
+                resetForm();
+                onClose();
+              }}
               className="px-4 py-2 text-gray-700 bg-gray-100 rounded hover:bg-gray-200"
             >
               Anuluj

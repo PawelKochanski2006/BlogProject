@@ -105,19 +105,19 @@ const PostDetails = () => {
 
   // Definicje zmiennych przed renderowaniem
   const tags = post.tags ? post.tags.split(',').map(tag => tag.trim()) : [];
-  const additionalImages = post.additional_images 
+  const additionalImages = post.additional_images
     ? post.additional_images.split(',').map(img => img.trim())
     : [];
 
   console.log('Przetworzone dodatkowe zdjęcia:', additionalImages); // debugging
 
   return (
-    <article className="container mx-auto px-4 py-8 max-w-4xl">
+    <article className="container mx-auto px-4 py-8 max-w-full md:max-w-4xl">
       <header className="mb-8">
-        <div className="flex justify-between items-start mb-4">
+        <div className="flex flex-col md:flex-row justify-between items-start mb-4">
           <div>
             <h1 className="text-3xl font-bold text-gray-900 mb-2">{post.title}</h1>
-            <div className="flex items-center text-gray-600 text-sm space-x-4">
+            <div className="flex flex-wrap items-center text-gray-600 text-sm space-x-4">
               <span>Autor: {post.author}</span>
               <span>•</span>
               <span>Kategoria: {post.category}</span>
@@ -135,7 +135,7 @@ const PostDetails = () => {
         </div>
 
         {/* Statystyki */}
-        <div className="flex items-center space-x-6 text-gray-600">
+        <div className="flex flex-wrap items-center space-x-6 text-gray-600">
           <div className="flex items-center">
             <span className="mr-2">👁️</span>
             <span>{post.views || 0} wyświetleń</span>
@@ -188,7 +188,7 @@ const PostDetails = () => {
       {additionalImages.length > 0 && (
         <div className="mb-8">
           <h2 className="text-xl font-semibold mb-4">Galeria:</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {additionalImages.map((image, index) => (
               <div key={index} className="aspect-w-16 aspect-h-9">
                 <img

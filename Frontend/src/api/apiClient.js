@@ -2,7 +2,6 @@ import axios from 'axios';
 
 const apiClient = axios.create({
   baseURL: process.env.REACT_APP_API_URL || 'http://localhost:5000/api',
-  timeout: 60000,
   maxContentLength: Infinity,
   maxBodyLength: Infinity,
   headers: {
@@ -16,7 +15,7 @@ apiClient.interceptors.request.use(
     if (config.url?.includes('/gallery')) {
       delete config.headers['Content-Type'];
     }
-    
+
     const token = localStorage.getItem('token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
