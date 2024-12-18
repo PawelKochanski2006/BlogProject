@@ -2,33 +2,33 @@ const galleryModel = require('../models/gallery.model');
 const multer = require('multer');
 const path = require('path');
 
-// // Konfiguracja multera dla przesyłania plików
-// const storage = multer.diskStorage({
-//   destination: (req, file, cb) => {
-//     cb(null, 'public/images/gallery/full/');
-//   },
-//   filename: (req, file, cb) => {
-//     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
-//     cb(null, uniqueSuffix + path.extname(file.originalname));
-//   },
-// });
+// Konfiguracja multera dla przesyłania plików
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, 'public/images/gallery/full/');
+  },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+    cb(null, uniqueSuffix + path.extname(file.originalname));
+  },
+});
 
-// const upload = multer({
-//   storage: storage,
-//   limits: {
-//     fileSize: 5 * 1024 * 1024, // 5MB limit
-//   },
-//   fileFilter: (req, file, cb) => {
-//     const filetypes = /jpeg|jpg|png|gif/;
-//     const mimetype = filetypes.test(file.mimetype);
-//     const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
+const upload = multer({
+  storage: storage,
+  limits: {
+    fileSize: 5 * 1024 * 1024, // 5MB limit
+  },
+  fileFilter: (req, file, cb) => {
+    const filetypes = /jpeg|jpg|png|gif/;
+    const mimetype = filetypes.test(file.mimetype);
+    const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
 
-//     if (mimetype && extname) {
-//       return cb(null, true);
-//     }
-//     cb(new Error('Dozwolone są tylko pliki obrazów!'));
-//   },
-// }).single('image');
+    if (mimetype && extname) {
+      return cb(null, true);
+    }
+    cb(new Error('Dozwolone są tylko pliki obrazów!'));
+  },
+}).single('image');
 
 /**
  * Funkcja `getGallery` asynchronicznie pobiera wszystkie obrazy z modelu galerii i wysyła je jako odpowiedź JSON,

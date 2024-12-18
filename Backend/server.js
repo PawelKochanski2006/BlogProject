@@ -14,20 +14,19 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // Middleware
-app.use(cors());
 app.use(bodyParser.json({ limit: '50mb' }));
 app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
 
+// Ustawienie cors
+app.use(cors({
+  origin: 'http://localhost:3000',
+  credentials: true
+}));
+
 // Serwowanie statycznych plików
-// app.use('/images', express.static(path.join(__dirname, 'public/images')));
 app.use(
   '/images',
-  express.static(path.join(__dirname, 'public/images'), {
-    // Opcje dla express.static
-    dotfiles: 'deny', // nie pozwalaj na dostęp do plików zaczynających się od kropki
-    etag: true, // włącz etagi dla lepszego cachowania
-    maxAge: '1d', // cache na 1 dzień
-  })
+  express.static(path.join(__dirname, 'public/images')) // Backend/public/images/gallery/full
 );
 
 // Trasy
