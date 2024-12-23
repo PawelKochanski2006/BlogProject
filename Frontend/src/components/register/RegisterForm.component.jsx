@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 
 const RegisterForm = ({ onSubmit, loading }) => {
@@ -25,7 +25,7 @@ const RegisterForm = ({ onSubmit, loading }) => {
 
   const [isFormValid, setIsFormValid] = useState(false);
 
-  const validateForm = () => {
+  const validateForm = useCallback(() => {
     const newErrors = {
       username: '',
       email: '',
@@ -57,15 +57,15 @@ const RegisterForm = ({ onSubmit, loading }) => {
     const isComplete = Object.values(formData).every(value => value !== '');
 
     return !hasErrors && isComplete;
-  };
+  }, [formData, touchedFields]);
 
   useEffect(() => {
     setIsFormValid(validateForm());
-  }, [formData, touchedFields]);
+  }, [formData, touchedFields, validateForm]);
 
   const handleSubmit = async e => {
     e.preventDefault();
-    
+
     setTouchedFields({
       username: true,
       email: true,
@@ -79,7 +79,7 @@ const RegisterForm = ({ onSubmit, loading }) => {
 
     const { confirmPassword, ...dataToSubmit } = formData;
     const result = await onSubmit(dataToSubmit);
-    
+
     if (!result.success) {
       setErrors(prev => ({
         ...prev,
@@ -113,7 +113,7 @@ const RegisterForm = ({ onSubmit, loading }) => {
         value={formData[name]}
         onChange={handleChange}
         onBlur={handleBlur}
-        className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 
+        className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500
           ${touchedFields[name] && errors[name] ? 'border-red-500' : 'border-gray-300'}`}
         required
       />

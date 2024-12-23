@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from 'react';
+import Masonry from 'react-masonry-css';
 import apiClient from '../api/apiClient';
 import { useAuth } from '../contexts/AuthContext';
 import Loading from '../components/common/Loading.component';
+import ErrorMessage from '../components/common/ErrorMessage.component';
 import AddImageModal from '../components/Gallery/AddImageModal.component';
+import ImageViewer from '../components/Gallery/ImageViewer.component';
 
 const Gallery = () => {
   const [images, setImages] = useState([]);
@@ -14,80 +17,107 @@ const Gallery = () => {
   const [selectedImage, setSelectedImage] = useState(null);
   const { user } = useAuth();
 
-  // Pobieranie kategorii
-  const fetchCategories = async () => {
-    try {
-      const response = await apiClient.get('/gallery/categories');
-      // console.log('Kategorie:', response.data); // debugging
-      setCategories(response.data);
-    } catch (err) {
-      console.error('Error fetching categories:', err);
-    }
+  // Konfiguracja breakpointów dla Masonry
+  const breakpointColumns = {
+    default: 4, // Domyślnie 4 kolumny
+    1280: 3,   // 3 kolumny poniżej 1280px
+    1024: 3,   // 3 kolumny poniżej 1024px
+    768: 2,    // 2 kolumny poniżej 768px
+    640: 1     // 1 kolumna poniżej 640px
   };
 
-  // Pobieranie zdjęć
-  const fetchImages = async (category = 'all') => {
+  const fetchImages = async () => {
     try {
-      setLoading(true);
-      const url = category === 'all' 
-        ? '/gallery'
-        : `/gallery/category/${category}`;
-      // console.log('Fetching images from:', url); // debugging
-      const response = await apiClient.get(url);
+      const response = await apiClient.get('/gallery');
       setImages(response.data);
     } catch (err) {
-      setError('Nie udało się załadować galerii.');
+      setError('Błąd podczas pobierania zdjęć');
       console.error('Error fetching images:', err);
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => {
-    fetchCategories();
-    fetchImages(selectedCategory);
-  }, [selectedCategory]);
+  const fetchCategories = async () => {
+    try {
+      const response = await apiClient.get('/gallery/categories');
+      setCategories(response.data);
+    } catch (err) {
+      console.error('Error fetching categories:', err);
+    }
+  };
 
-  if (loading) return <Loading />;
-  if (error) return <div className="text-red-500 text-center">{error}</div>;
+  useEffect(() => {
+    fetchImages();
+    fetchCategories();
+  }, []);
+
+  const handleImageAdded = (newImage) => {
+    setImages(prevImages => [newImage, ...prevImages]);
+  };
+
+  const filteredImages = selectedCategory === 'all'
+    ? images
+    : images.filter(img => String(img.category_id) === String(selectedCategory));
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      {/* Filtr kategorii */}
-      <div className="mb-8">
-        <select
-          value={selectedCategory}
-          onChange={e => setSelectedCategory(e.target.value)}
-          className="w-full md:w-auto px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-        >
-          <option value="all">Wszystkie kategorie</option>
-          {categories.map(category => (
-            <option key={category.id} value={category.id}>
-              {category.name}
-            </option>
-          ))}
-        </select>
-      </div>
+      <div className="container mx-auto px-4">
+        {/* Header section */}
+        <div className="mb-8">
+          <div className="flex justify-between items-center mb-6">
+            <select
+              value={selectedCategory}
+              onChange={(e) => setSelectedCategory(e.target.value)}
+              className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="all">Wszystkie kategorie</option>
+              {categories.map((category) => (
+                <option key={category.id} value={category.id}>
+                  {category.name}
+                </option>
+              ))}
+            </select>
 
-      {/* Siatka zdjęć */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-        {images.map(image => (
-          <div
-            key={image.image_id}
-            className="relative group cursor-pointer overflow-hidden rounded-lg shadow-lg"
-            onClick={() => setSelectedImage(image)}
-          >
-            <img
-              src={image.image_url}
-              alt={image.alt_text}
-              className="w-full h-64 object-cover transition-transform duration-300 group-hover:scale-110"
-            />
-            <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-50 transition-opacity duration-300" />
+            {user && user.role === 'admin' && (
+              <button
+                onClick={() => setIsAddModalOpen(true)}
+                className="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600 transition-colors"
+              >
+                Dodaj zdjęcie
+              </button>
+            )}
           </div>
-        ))}
-      </div>
 
-      {/* Przycisk dodawania (sprawdzamy rolę) */}
+        {/* Gallery grid */}
+        {loading ? (
+          <Loading />
+        ) : error ? (
+          <ErrorMessage message={error} />
+        ) : (
+          <Masonry
+            breakpointCols={breakpointColumns}
+            className="flex -ml-4 w-auto"
+            columnClassName="pl-4 bg-clip-padding"
+          >
+            {filteredImages.map((image) => (
+              <div
+                key={image.id}
+                className="mb-4 cursor-pointer transition-transform duration-300 hover:scale-[1.02]"
+                onClick={() => setSelectedImage(image)}
+              >
+                <img
+                  src={image.image_url}
+                  alt={image.alt_text || 'Gallery image'}
+                  className="w-full rounded-lg shadow-md hover:shadow-xl transition-shadow duration-300"
+                  loading="lazy"
+                />
+              </div>
+            ))}
+          </Masonry>
+        )}
+
+      {/* Modal dodawania zdjęć */}
+      {/* Przycisk dodawania */}
       {user && user.role.id === 1 && (
         <button
           onClick={() => setIsAddModalOpen(true)}
@@ -114,36 +144,27 @@ const Gallery = () => {
       <AddImageModal
         isOpen={isAddModalOpen}
         onClose={() => setIsAddModalOpen(false)}
-        onImageAdded={() => {
-          fetchImages(selectedCategory);
-          setIsAddModalOpen(false);
-        }}
+        onImageAdded={handleImageAdded}
+        categories={categories}
       />
 
-      {/* Przeglądarka zdjęć */}
-      {selectedImage && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75"
-          onClick={() => setSelectedImage(null)}
-        >
-          <div
-            className="relative max-w-4xl max-h-[90vh] bg-white rounded-lg overflow-hidden"
-            onClick={e => e.stopPropagation()}
-          >
-            <button
-              className="absolute top-4 right-4 text-white bg-black bg-opacity-50 rounded-full w-8 h-8 flex items-center justify-center hover:bg-opacity-75"
-              onClick={() => setSelectedImage(null)}
-            >
-              ×
-            </button>
-            <img
-              src={selectedImage.image_url}
-              alt={selectedImage.alt_text}
-              className="max-h-[90vh] w-auto"
-            />
+        {selectedImage && (
+          <ImageViewer
+            image={selectedImage}
+            isOpen={!!selectedImage}
+            onClose={() => setSelectedImage(null)}
+          />
+        )}
+
+        {/* Pusta galeria */}
+        {!loading && !error && filteredImages.length === 0 && (
+          <div className="text-center py-12">
+            <p className="text-gray-500 text-lg">
+              Brak zdjęć w wybranej kategorii
+            </p>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 };

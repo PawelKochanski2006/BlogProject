@@ -9,21 +9,20 @@ const db = require('../config/db.config');
  */
 const findAllImages = () => {
   return new Promise((resolve, reject) => {
-    const query = `SELECT
-                        g.id AS image_id,
-                        g.image_url,
-                        g.alt_text,
-                        gc.name AS category,
-                        u.username AS uploaded_by,
-                        g.created_at
-                    FROM
-                        gallery g
-                    LEFT JOIN
-                        gallery_categories gc ON g.category_id = gc.id
-                    JOIN
-                        users u ON g.user_id = u.id
-                    ORDER BY
-                        g.created_at DESC;`;
+    const query = `
+      SELECT
+        g.id,
+        g.image_url,
+        g.alt_text,
+        g.created_at,
+        gc.name as category_name,
+        gc.id as category_id,
+        u.username as uploaded_by
+      FROM gallery g
+      LEFT JOIN gallery_categories gc ON g.category_id = gc.id
+      LEFT JOIN users u ON g.user_id = u.id
+      ORDER BY g.created_at DESC
+    `;
 
     db.query(query, (err, results) => {
       if (err) return reject(err);
@@ -49,31 +48,31 @@ const findAllImagesByCategory = categoryId => {
 
     const query =
       categoryId === 'all'
-        ? `SELECT 
-            g.*, 
+        ? `SELECT
+            g.*,
             gc.name as category_name,
             u.username as author_name
-          FROM 
-            gallery g 
-          LEFT JOIN 
+          FROM
+            gallery g
+          LEFT JOIN
             gallery_categories gc ON g.category_id = gc.id
-          LEFT JOIN 
-            users u ON g.user_id = u.id 
-          ORDER BY 
+          LEFT JOIN
+            users u ON g.user_id = u.id
+          ORDER BY
             g.created_at DESC`
-        : `SELECT 
-            g.*, 
-            gc.name as category_name, 
+        : `SELECT
+            g.*,
+            gc.name as category_name,
             u.username as author_name
-          FROM 
-            gallery g 
-          LEFT JOIN 
+          FROM
+            gallery g
+          LEFT JOIN
             gallery_categories gc ON g.category_id = gc.id
-          LEFT JOIN 
-            users u ON g.user_id = u.id 
-          WHERE 
+          LEFT JOIN
+            users u ON g.user_id = u.id
+          WHERE
             g.category_id = ?
-          ORDER BY 
+          ORDER BY
             g.created_at DESC`;
 
     db.query(query, params, (err, results) => {
@@ -96,26 +95,17 @@ const findAllImagesByCategory = categoryId => {
  * galerii.
  * @returns Funkcja `addImage` zwraca obietnicę.
  */
-const addImage = (user_id, image_url, alt_text, category_id) => {
+const addImage = (userId, imageUrl, altText, categoryId) => {
   return new Promise((resolve, reject) => {
-    db.query(
-      'INSERT INTO gallery (user_id, image_url, alt_text, category_id) VALUES (?, ?, ?, ?)',
-      [user_id, image_url, alt_text, category_id],
-      (err, result) => {
-        if (err) {
-          console.error('Database error in addImage:', err);
-          return reject(err);
-        }
-        // Zwracamy dodany rekord
-        resolve({
-          id: result.insertId,
-          user_id,
-          image_url,
-          alt_text,
-          category_id,
-        });
-      }
-    );
+    const query = `
+      INSERT INTO gallery (user_id, image_url, alt_text, category_id)
+      VALUES (?, ?, ?, ?)
+    `;
+
+    db.query(query, [userId, imageUrl, altText, categoryId], (err, results) => {
+      if (err) return reject(err);
+      resolve(results);
+    });
   });
 };
 

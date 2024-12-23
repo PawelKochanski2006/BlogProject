@@ -1,35 +1,40 @@
 const express = require('express');
 const router = express.Router();
-const {
-  addImage,
-  getImagesByCategory,
-  deleteImageById,
-  getGallery,
-  updateImageDetails,
-  createNewCategory,
-  getGalleryCategories,
-} = require('../controllers/gallery.controller');
+const galleryController = require('../controllers/gallery.controller');
 const authMiddleware = require('../middleware/auth.middleware');
+const upload = require('../middleware/upload.middleware');
 
-// Pobierz wszystkie kategorie (musi być przed /:category)
-router.get('/categories', getGalleryCategories);
+// Upewnij się, że folder istnieje
+const fs = require('fs');
+const path = require('path');
+const uploadDir = path.join(__dirname, '../public/images/gallery/full');
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir, { recursive: true });
+}
+
+// Pobierz wszystkie kategorie
+router.get('/categories', galleryController.getGalleryCategories);
 
 // Pobierz wszystkie zdjęcia
-router.get('/', getGallery);
+router.get('/', galleryController.getGallery);
 
 // Pobierz zdjęcia po kategorii
-router.get('/category/:category', getImagesByCategory);
+router.get('/category/:category', galleryController.getImagesByCategory);
 
 // Dodaj nowe zdjęcie (tylko dla admina)
-router.post('/', authMiddleware, addImage);
+router.post('/',
+  authMiddleware(['admin']),
+  upload.single('image'),
+  galleryController.addImage
+);
 
 // Zaktualizuj szczegóły zdjęcia (tylko dla admina)
-router.put('/:image_id', authMiddleware(['admin']), updateImageDetails);
+router.put('/:image_id', authMiddleware(['admin']), galleryController.updateImageDetails);
 
 // Usuń zdjęcie (tylko dla admina)
-router.delete('/:image_id', authMiddleware(['admin']), deleteImageById);
+router.delete('/:image_id', authMiddleware(['admin']), galleryController.deleteImageById);
 
 // Utwórz nową kategorię (tylko dla admina)
-router.post('/category', authMiddleware(['admin']), createNewCategory);
+router.post('/category', authMiddleware(['admin']), galleryController.createNewCategory);
 
 module.exports = router;

@@ -1,43 +1,4 @@
 const galleryModel = require('../models/gallery.model');
-const multer = require('multer');
-const path = require('path');
-const fs = require('fs');
-
-// Konfiguracja ścieżki do zapisywania plików
-const uploadPath = path.join(__dirname, '../public/images/gallery/full');
-
-// Utworzenie folderu jeśli nie istnieje
-if (!fs.existsSync(uploadPath)) {
-  fs.mkdirSync(uploadPath, { recursive: true });
-}
-
-// Konfiguracja multera dla przesyłania plików
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, uploadPath);
-  },
-  filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    cb(null, 'gallery-' + uniqueSuffix + path.extname(file.originalname));
-  }
-});
-
-const upload = multer({
-  storage: storage,
-  fileFilter: (req, file, cb) => {
-    const allowedTypes = /jpeg|jpg|png|gif|webp/;
-    const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
-    const mimetype = allowedTypes.test(file.mimetype);
-
-    if (extname && mimetype) {
-      return cb(null, true);
-    }
-    cb(new Error('Dozwolone są tylko pliki graficzne: JPEG, PNG, GIF, WEBP'));
-  },
-  limits: {
-    fileSize: 10 * 1024 * 1024 // Limit 10MB
-  }
-}).single('image');
 
 /**
  * Funkcja `getGallery` asynchronicznie pobiera wszystkie obrazy z modelu galerii i wysyła je jako odpowiedź JSON,
@@ -53,14 +14,13 @@ const upload = multer({
 const getGallery = async (req, res) => {
   try {
     const images = await galleryModel.findAllImages();
-    console.log('Fetched images:', images); // debugging
-    res.json(images);
-  } catch (err) {
-    console.error('Error in getGallery:', err);
-    res.status(500).json({
-      message: 'Wystąpił błąd podczas pobierania galerii',
-      error: err.message,
-    });
+    res.json(images.map(img => ({
+      ...img,
+      image_url: `${process.env.BASE_URL || 'http://localhost:5000'}${img.image_url}`
+    })));
+  } catch (error) {
+    console.error('Error fetching gallery:', error);
+    res.status(500).json({ message: 'Błąd podczas pobierania galerii' });
   }
 };
 
@@ -107,70 +67,30 @@ const getImagesByCategory = async (req, res) => {
  */
 const addImage = async (req, res) => {
   try {
-    upload(req, res, async function(err) {
-      if (err) {
-        console.error('Błąd podczas przesyłania:', err);
-        return res.status(400).json({
-          message: 'Błąd podczas przesyłania pliku',
-          error: err.message
-        });
-      }
+    if (!req.file) {
+      return res.status(400).json({ message: 'Nie przesłano pliku' });
+    }
 
-      // Sprawdzenie wymaganych pól
-      if (!req.file) {
-        return res.status(400).json({
-          message: 'Nie przesłano pliku'
-        });
-      }
+    const imageUrl = `/images/gallery/full/${req.file.filename}`;
+    const altText = req.body.alt_text || '';
+    const categoryId = req.body.category_id || null;
 
-      if (!req.body.alt_text?.trim()) {
-        return res.status(400).json({
-          message: 'Brak opisu alternatywnego'
-        });
-      }
+    const result = await galleryModel.addImage(
+      req.user.id,
+      imageUrl,
+      altText,
+      categoryId
+    );
 
-      if (!req.body.category_id) {
-        return res.status(400).json({
-          message: 'Nie wybrano kategorii'
-        });
-      }
-
-      if (!req.body.user_id) {
-        return res.status(400).json({
-          message: 'Brak ID użytkownika'
-        });
-      }
-
-      const { user_id, alt_text, category_id } = req.body;
-      const image_url = `/images/gallery/full/${req.file.filename}`;
-
-      try {
-        const result = await galleryModel.addImage(
-          user_id, 
-          image_url, 
-          alt_text, 
-          category_id
-        );
-
-        return res.status(201).json({
-          message: 'Zdjęcie zostało dodane pomyślnie',
-          imageId: result.id,
-          image_url: result.image_url,
-          alt_text: result.alt_text,
-          category_id: result.category_id
-        });
-      } catch (dbError) {
-        console.error('Błąd bazy danych:', dbError);
-        return res.status(500).json({
-          message: 'Błąd podczas zapisywania w bazie danych'
-        });
-      }
+    res.status(201).json({
+      id: result.insertId,
+      image_url: `${process.env.BASE_URL || 'http://localhost:5000'}${imageUrl}`,
+      alt_text: altText,
+      category_id: categoryId
     });
-  } catch (err) {
-    console.error('Ogólny błąd:', err);
-    return res.status(500).json({
-      message: 'Wystąpił nieoczekiwany błąd'
-    });
+  } catch (error) {
+    console.error('Error adding image:', error);
+    res.status(500).json({ message: 'Błąd podczas dodawania zdjęcia' });
   }
 };
 

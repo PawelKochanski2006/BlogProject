@@ -1,422 +1,61 @@
 # Blog Project API Documentation
 
-## Authentication
+## Overview
 
-### Register
+API dla bloga umożliwiająca zarządzanie postami, komentarzami, galerią zdjęć oraz użytkownikami. API obsługuje uwierzytelnianie użytkowników, role (admin/user) oraz różne operacje CRUD.
 
-- **Endpoint:** `/api/auth/register`
-- **Method:** `POST`
-- **Description:** Tworzy nowego użytkownika
-- **Request Body:**
-  ```json
-  {
-    "username": "string",
-    "email": "string",
-    "password": "string"
-  }
-  ```
-- **Response:**
-  ```json
-  {
-    "message": "User registered",
-    "userId": "number"
-  }
-  ```
+## Główne funkcjonalności
 
-### Login
+- Uwierzytelnianie użytkowników (rejestracja, logowanie)
+- Zarządzanie postami (dodawanie, edycja, usuwanie)
+- System komentarzy (dodawanie, edycja, odpowiedzi)
+- Galeria zdjęć (kategorie, upload, zarządzanie)
+- System polubień postów
+- Licznik wyświetleń postów
 
-- **Endpoint:** `/api/auth/login`
-- **Method:** `POST`
-- **Description:** Uwierzytelnia użytkownika i zwraca token JWT
-- **Request Body:**
-  ```json
-  {
-    "usernameOrEmail": "string",
-    "password": "string"
-  }
-  ```
-- **Response:**
-  ```json
-  {
-    "token": "string"
-  }
-  ```
+## Dokumentacja szczegółowa
 
-### Get Current User
+### [Autentykacja](./docs/auth.md)
 
-- **Endpoint:** `/api/auth/me`
-- **Method:** `GET`
-- **Description:** Pobiera dane aktualnie zalogowanego użytkownika
-- **Response:**
-  ```json
-  {
-    "id": "number",
-    "username": "string",
-    "email": "string",
-    "created_at": "string"
-  }
-  ```
+Endpointy związane z rejestracją, logowaniem i zarządzaniem użytkownikami.
 
-## Posts
+### [Posty](./docs/posts.md)
 
-### Get All Posts
+Endpointy do zarządzania postami, polubieniami i wyświetleniami.
 
-- **Endpoint:** `/api/posts`
-- **Method:** `GET`
-- **Description:** Pobiera wszystkie posty
-- **Response:**
-  ```json
-  [
-    {
-      "id": "number",
-      "title": "string",
-      "description": "string",
-      "imageUrl": "string",
-      "created_at": "string",
-      "updated_at": "string",
-      "likes_count": "number",
-      "views_count": "number",
-      "comments_count": "number",
-      "category": {
-        "id": "number",
-        "name": "string"
-      }
-    }
-  ]
-  ```
+### [Komentarze](./docs/comments.md)
 
-### Get Post by ID
+Endpointy do zarządzania komentarzami i odpowiedziami.
 
-- **Endpoint:** `/api/posts/:id`
-- **Method:** `GET`
-- **Description:** Pobiera post po ID
-- **Response:**
-  ```json
-  {
-    "id": "number",
-    "title": "string",
-    "description": "string",
-    "imageUrl": "string",
-    "additionalImages": ["string"],
-    "created_at": "string",
-    "updated_at": "string",
-    "likes_count": "number",
-    "views_count": "number",
-    "comments_count": "number",
-    "category": {
-      "id": "number",
-      "name": "string"
-    },
-    "isLiked": "boolean"
-  }
-  ```
+### [Galeria](./docs/gallery.md)
 
-### Add Post
+Endpointy do zarządzania zdjęciami i kategoriami galerii.
 
-- **Endpoint:** `/api/posts`
-- **Method:** `POST`
-- **Description:** Dodaje nowy post. Dostępne tylko dla admina.
-- **Request Body:**
-  ```json
-  {
-    "title": "string",
-    "description": "string",
-    "categoryId": "number",
-    "imageUrl": "string",
-    "additionalImages": ["string"]
-  }
-  ```
-- **Response:**
-  ```json
-  {
-    "message": "Post added",
-    "postId": "number"
-  }
-  ```
+## Technologie
 
-### Edit Post
+- Node.js + Express
+- MySQL
+- JWT do uwierzytelniania
+- Multer do obsługi plików
 
-- **Endpoint:** `/api/posts/:postId`
-- **Method:** `PUT`
-- **Description:** Edytuje istniejący post. Dostępne tylko dla admina.
-- **Request Body:**
-  ```json
-  {
-    "title": "string",
-    "description": "string",
-    "categoryId": "number",
-    "imageUrl": "string",
-    "additionalImages": ["string"]
-  }
-  ```
-- **Response:**
-  ```json
-  {
-    "message": "Post updated"
-  }
-  ```
+## Wymagania
 
-### Delete Post
+- Node.js
+- MySQL
+- Zmienne środowiskowe (.env):
+  - PORT
+  - DB_HOST
+  - DB_USER
+  - DB_PASSWORD
+  - DB_NAME
+  - JWT_SECRET
+  - TOKEN_LIFETIME
 
-- **Endpoint:** `/api/posts/:postId`
-- **Method:** `DELETE`
-- **Description:** Usuwa post. Dostępne tylko dla admina.
-- **Response:**
-  ```json
-  {
-    "message": "Post deleted"
-  }
-  ```
+## Instalacja
 
-### Add Like to Post
-
-- **Endpoint:** `/api/posts/:postId/like`
-- **Method:** `POST`
-- **Description:** Dodaje polubienie do posta. Dostępne tylko dla zalogowanych użytkowników.
-- **Response:**
-  ```json
-  {
-    "message": "Like added",
-    "likes_count": "number"
-  }
-  ```
-
-### Remove Like from Post
-
-- **Endpoint:** `/api/posts/:postId/unlike`
-- **Method:** `POST`
-- **Description:** Usuwa polubienie z posta. Dostępne tylko dla zalogowanych użytkowników.
-- **Response:**
-  ```json
-  {
-    "message": "Like removed",
-    "likes_count": "number"
-  }
-  ```
-
-### Increment Post Views
-
-- **Endpoint:** `/api/posts/:postId/views`
-- **Method:** `POST`
-- **Description:** Zwiększa licznik wyświetleń posta
-- **Response:**
-  ```json
-  {
-    "message": "View count incremented",
-    "views_count": "number"
-  }
-  ```
-
-## Comments
-
-### Get Comments by Post ID
-
-- **Endpoint:** `/api/comments/:postId`
-- **Method:** `GET`
-- **Description:** Pobiera wszystkie komentarze dla danego posta
-- **Response:**
-  ```json
-  [
-    {
-      "id": "number",
-      "postId": "number",
-      "userId": "number",
-      "username": "string",
-      "content": "string",
-      "created_at": "string",
-      "updated_at": "string"
-    }
-  ]
-  ```
-
-### Add Comment
-
-- **Endpoint:** `/api/comments`
-- **Method:** `POST`
-- **Description:** Dodaje nowy komentarz. Dostępne tylko dla zalogowanych użytkowników.
-- **Request Body:**
-  ```json
-  {
-    "postId": "number",
-    "userId": "number",
-    "content": "string",
-    "parentCommentId": "number" // gdy nie podasz to zmienna będzie = null
-  }
-  ```
-- **Response:**
-  ```json
-  {
-    "message": "Comment added",
-    "commentId": "number"
-  }
-  ```
-
-### Edit Comment
-
-- **Endpoint:** `/api/comments/:id`
-- **Method:** `PUT`
-- **Description:** Edytuje istniejący komentarz. Dostępne tylko dla autora komentarza.
-- **Request Body:**
-  ```json
-  {
-    "content": "string"
-  }
-  ```
-- **Response:**
-  ```json
-  {
-    "message": "Comment updated"
-  }
-  ```
-
-### Delete Comment
-
-- **Endpoint:** `/api/comments/:id`
-- **Method:** `DELETE`
-- **Description:** Usuwa komentarz. Dostępne dla admina lub autora komentarza.
-- **Response:**
-  ```json
-  {
-    "message": "Comment deleted"
-  }
-  ```
-
-## Gallery
-
-### Get All Images
-
-- **Endpoint:** `/api/gallery`
-- **Method:** `GET`
-- **Description:** Pobiera wszystkie zdjęcia z galerii
-- **Response:**
-  ```json
-  [
-    {
-      "image_id": "number",
-      "image_url": "string",
-      "alt_text": "string",
-      "category": {
-        "id": "number",
-        "name": "string"
-      },
-      "created_at": "string",
-      "user": {
-        "id": "number",
-        "username": "string"
-      }
-    }
-  ]
-  ```
-
-### Get Images by Category
-
-- **Endpoint:** `/api/gallery/category/:categoryId`
-- **Method:** `GET`
-- **Description:** Pobiera zdjęcia z danej kategorii
-- **Response:**
-  ```json
-  [
-    {
-      "image_id": "number",
-      "image_url": "string",
-      "alt_text": "string",
-      "category": {
-        "id": "number",
-        "name": "string"
-      },
-      "created_at": "string",
-      "user": {
-        "id": "number",
-        "username": "string"
-      }
-    }
-  ]
-  ```
-
-### Add Image
-
-- **Endpoint:** `/api/gallery`
-- **Method:** `POST`
-- **Description:** Dodaje nowe zdjęcie do galerii. Dostępne tylko dla admina.
-- **Request Body:**
-  ```json
-  {
-    "image_url": "string",
-    "alt_text": "string",
-    "category_id": "number"
-  }
-  ```
-- **Response:**
-  ```json
-  {
-    "message": "Image added",
-    "imageId": "number"
-  }
-  ```
-
-### Update Image Details
-
-- **Endpoint:** `/api/gallery/:image_id`
-- **Method:** `PUT`
-- **Description:** Aktualizuje szczegóły zdjęcia. Dostępne tylko dla admina.
-- **Request Body:**
-  ```json
-  {
-    "image_url": "string",
-    "alt_text": "string",
-    "category_id": "number"
-  }
-  ```
-- **Response:**
-  ```json
-  {
-    "message": "Image updated"
-  }
-  ```
-
-### Delete Image
-
-- **Endpoint:** `/api/gallery/:image_id`
-- **Method:** `DELETE`
-- **Description:** Usuwa zdjęcie. Dostępne tylko dla admina.
-- **Response:**
-  ```json
-  {
-    "message": "Image deleted"
-  }
-  ```
-
-### Get All Categories
-
-- **Endpoint:** `/api/gallery/categories`
-- **Method:** `GET`
-- **Description:** Pobiera wszystkie kategorie galerii
-- **Response:**
-  ```json
-  [
-    {
-      "id": "number",
-      "name": "string",
-      "image_count": "number"
-    }
-  ]
-  ```
-
-### Create New Category
-
-- **Endpoint:** `/api/gallery/categories`
-- **Method:** `POST`
-- **Description:** Tworzy nową kategorię w galerii. Dostępne tylko dla admina.
-- **Request Body:**
-  ```json
-  {
-    "name": "string"
-  }
-  ```
-- **Response:**
-  ```json
-  {
-    "message": "Category created",
-    "categoryId": "number"
-  }
-  ```
+1. Sklonuj repozytorium
+2. Przejdz do konsoli
+3. Przejdz do folderu backend: `cd Backend`
+4. Zainstaluj zależności: `npm install`
+5. Skonfiguruj plik .env
+6. Uruchom serwer: `npm start`

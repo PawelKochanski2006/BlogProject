@@ -33,9 +33,7 @@ apiClient.interceptors.response.use(
   (error) => {
     console.error('Response error:', error);
     if (error.code === 'ECONNABORTED') {
-      return Promise.reject({
-        message: 'Przekroczono czas oczekiwania na odpowiedź serwera. Spróbuj ponownie.'
-      });
+      return Promise.reject(new Error('Przekroczono limit czasu połączenia. Spróbuj ponownie.'));
     }
     return Promise.reject(error);
   }

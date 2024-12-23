@@ -1,7 +1,23 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const ImageViewer = ({ image, isOpen, onClose }) => {
+  useEffect(() => {
+    const handleEscapeKey = (event) => {
+      if (event.key === 'Escape') {
+        onClose();
+      }
+    };
+
+    // Dodaj nasłuchiwanie klawisza po zamontowaniu komponentu
+    document.addEventListener('keydown', handleEscapeKey);
+
+    // Usuń nasłuchiwanie po odmontowaniu komponentu
+    return () => {
+      document.removeEventListener('keydown', handleEscapeKey);
+    };
+  }, [onClose]);
+
   if (!image) return null;
 
   return (
@@ -14,7 +30,7 @@ const ImageViewer = ({ image, isOpen, onClose }) => {
           className="fixed inset-0 z-50 flex items-center justify-center"
         >
           {/* Zblurowane tło */}
-          <div 
+          <div
             className="absolute inset-0 backdrop-blur-md bg-black/30"
             onClick={onClose}
           />
@@ -53,4 +69,4 @@ const ImageViewer = ({ image, isOpen, onClose }) => {
   );
 };
 
-export default ImageViewer; 
+export default ImageViewer;

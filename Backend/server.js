@@ -1,51 +1,44 @@
 const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
-const authRoutes = require('./routes/auth.routes');
-const postRoutes = require('./routes/post.routes');
-const commentRoutes = require('./routes/comment.routes');
-const galleryRoutes = require('./routes/gallery.routes');
 const path = require('path');
 
 // Wczytaj zmienne środowiskowe
 require('dotenv').config();
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 5000;
 
-// Middleware
+// Konfiguracja CORS
+app.use(cors({
+  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
+
+// Zwiększ limity dla parsera
 app.use(bodyParser.json({ limit: '50mb' }));
 app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
 
-// Ustawienie cors
-app.use(cors({
-  origin: 'http://localhost:3000',
-  credentials: true
-}));
-
-// Serwowanie statycznych plików
-app.use(
-  '/images',
-  express.static(path.join(__dirname, 'public/images')) // Backend/public/images/gallery/full
-);
+// Konfiguracja ścieżek statycznych
+app.use('/images', express.static(path.join(__dirname, 'public/images')));
 
 // Trasy
-app.use('/api/auth', authRoutes);
-app.use('/api/posts', postRoutes);
-app.use('/api/comments', commentRoutes);
-app.use('/api/gallery', galleryRoutes);
+app.use('/api/auth', require('./routes/auth.routes'));
+app.use('/api/posts', require('./routes/post.routes'));
+app.use('/api/comments', require('./routes/comment.routes'));
+app.use('/api/gallery', require('./routes/gallery.routes'));
 
 // Obsługa błędów
-app.use((req, res) => {
-  res.status(404).send({ message: 'Not found' });
-});
-
 app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).send({ message: 'Something broke!' });
+  console.error('Server error:', err);
+  res.status(err.status || 500).json({
+    message: err.message || 'Wystąpił błąd serwera',
+    error: process.env.NODE_ENV === 'development' ? err : {}
+  });
 });
 
-// Uruchomienie serwera
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
