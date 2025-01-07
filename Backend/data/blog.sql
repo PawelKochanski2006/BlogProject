@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Dec 18, 2024 at 01:11 AM
+-- Generation Time: Sty 07, 2025 at 10:35 PM
 -- Wersja serwera: 10.4.32-MariaDB
 -- Wersja PHP: 8.2.12
 
@@ -112,11 +112,17 @@ CREATE TABLE `gallery` (
 --
 
 INSERT INTO `gallery` (`id`, `user_id`, `image_url`, `alt_text`, `category_id`, `created_at`) VALUES
-(6, 1, 'https://placehold.co/300x300', 'Beautiful Landscape', 1, '2024-12-11 00:02:39'),
-(7, 1, 'https://placehold.co/300x300', 'Tech Innovations', 2, '2024-12-11 00:02:39'),
-(8, 1, 'https://placehold.co/300x300', 'Healthy Living Tips', 3, '2024-12-11 00:02:39'),
-(9, 1, 'https://placehold.co/300x300', 'AI in Action', 2, '2024-12-11 00:02:39'),
-(10, 1, 'https://placehold.co/300x300', 'Lifestyle Choice', 3, '2024-12-11 00:02:39');
+(13, 1, '/images/gallery/full/1734914580542-424464366.jpg', '', NULL, '2024-12-22 23:21:18'),
+(15, 1, '/images/gallery/full/1734911476659-180214201.jpg', 'Ocean', 1, '2024-12-22 23:51:16'),
+(16, 1, '/images/gallery/full/1734913131615-129915508.jpg', 'wierzowce', 2, '2024-12-23 00:18:51'),
+(18, 1, '/images/gallery/full/1734913208230-239457647.jpg', 'Drzewo na wyspie otoczone oceanem, a także pięknym zachodem słońca ', 1, '2024-12-23 00:20:08'),
+(19, 1, '/images/gallery/full/1734913252193-479333646.jpg', 'Droga leśna w porę jesienną ', 1, '2024-12-23 00:20:52'),
+(20, 1, '/images/gallery/full/1734913571460-790500111.jpg', 'Niebiesko-szary ptak siedzący na na pniu ściętego drzewa w tle zielona łąka', 1, '2024-12-23 00:26:11'),
+(21, 1, '/images/gallery/full/1734914049903-251472466.jpg', 'Wiatrak generujący prąd', 3, '2024-12-23 00:34:09'),
+(22, 1, '/images/gallery/full/1734914085708-321588736.jpg', 'Coś wygenerowane przez ai', 3, '2024-12-23 00:34:45'),
+(23, 1, '/images/gallery/full/1734914128639-377007776.jpg', 'Coś związane z precyzyjną technologią', 3, '2024-12-23 00:35:28'),
+(24, 1, '/images/gallery/full/1734914537809-132381091.jpg', 'Stara kamera', 3, '2024-12-23 00:42:17'),
+(25, 1, '/images/gallery/full/1734914580542-424464366.jpg', 'Powtarzam bo sprawdzam co będzie jak...', 2, '2024-12-23 00:43:00');
 
 -- --------------------------------------------------------
 
@@ -166,12 +172,12 @@ CREATE TABLE `posts` (
 --
 
 INSERT INTO `posts` (`id`, `date`, `title`, `description`, `read_time`, `views`, `likes_count`, `image_url`, `alt_text`, `category_id`, `created_by`, `created_at`) VALUES
-(1, '2023-12-01', 'Exploring AI', 'A deep dive into AI and its future applications.', '5 min read', 241, 3, 'https://placehold.co/300x200', 'AI Image', 1, 1, '2024-12-10 23:46:13'),
-(2, '2023-12-02', 'Healthy Living Tips', 'Tips for a healthy and balanced lifestyle.', '3 min read', 136, 1, 'https://placehold.co/300x200', 'Lifestyle Image', 2, 2, '2024-12-10 23:46:13'),
+(1, '2023-12-01', 'Exploring AI', 'A deep dive into AI and its future applications.', '5 min read', 242, 3, 'https://placehold.co/300x200', 'AI Image', 1, 1, '2024-12-10 23:46:13'),
+(2, '2023-12-02', 'Healthy Living Tips', 'Tips for a healthy and balanced lifestyle.', '3 min read', 143, 1, 'https://placehold.co/300x200', 'Lifestyle Image', 2, 2, '2024-12-10 23:46:13'),
 (3, '2023-12-03', 'The Future of Technology', 'How technology will shape our lives in 2030.', '7 min read', 210, 3, 'https://placehold.co/300x200', 'Future Tech Image', 1, 1, '2024-12-10 23:46:13'),
-(4, '2023-12-01', 'Exploring AI', 'A deep dive into AI and its future applications.', '5 min read', 238, 2, 'https://placehold.co/300x200', 'AI Image', 1, 1, '2024-12-10 23:46:38'),
-(5, '2023-12-02', 'Healthy Living Tips', 'Tips for a healthy and balanced lifestyle.', '3 min read', 133, 2, 'https://placehold.co/300x200', 'Lifestyle Image', 2, 2, '2024-12-10 23:46:38'),
-(6, '2023-12-03', 'The Future of Technology', 'How technology will shape our lives in 2030.', '7 min read', 239, 2, 'https://placehold.co/300x200', 'Future Tech Image', 1, 1, '2024-12-10 23:46:38');
+(4, '2023-12-01', 'Exploring AI', 'A deep dive into AI and its future applications.', '5 min read', 239, 2, 'https://placehold.co/300x200', 'AI Image', 1, 1, '2024-12-10 23:46:38'),
+(5, '2023-12-02', 'Healthy Living Tips', 'Tips for a healthy and balanced lifestyle.', '3 min read', 138, 2, 'https://placehold.co/300x200', 'Lifestyle Image', 2, 2, '2024-12-10 23:46:38'),
+(6, '2023-12-03', 'The Future of Technology', 'How technology will shape our lives in 2030.', '7 min read', 241, 2, 'https://placehold.co/300x200', 'Future Tech Image', 1, 1, '2024-12-10 23:46:38');
 
 -- --------------------------------------------------------
 
@@ -420,7 +426,7 @@ ALTER TABLE `comments`
 -- AUTO_INCREMENT for table `gallery`
 --
 ALTER TABLE `gallery`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=26;
 
 --
 -- AUTO_INCREMENT for table `gallery_categories`
